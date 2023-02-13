@@ -15,7 +15,7 @@ REAL_IP_FROM=${REAL_IP_FROM:-0.0.0.0/32}
 REAL_IP_HEADER=${REAL_IP_HEADER:-X-Forwarded-For}
 LOG_IP_VAR=${LOG_IP_VAR:-remote_addr}
 LOG_ACCESS=${LOG_ACCESS:-true}
-XMLRPC_SIZE_LIMIT=${XMLRPC_SIZE_LIMIT:-1M}
+XMLRPC_SIZE_LIMIT=${XMLRPC_SIZE_LIMIT:-6M}
 
 XMLRPC_AUTHBASIC_STRING=${XMLRPC_AUTHBASIC_STRING:-rTorrent XMLRPC restricted access}
 RUTORRENT_AUTHBASIC_STRING=${RUTORRENT_AUTHBASIC_STRING:-ruTorrent restricted access}
@@ -34,7 +34,7 @@ RU_LOG_RPC_FAULTS=${RU_LOG_RPC_FAULTS:-true}
 RU_PHP_USE_GZIP=${RU_PHP_USE_GZIP:-false}
 RU_PHP_GZIP_LEVEL=${RU_PHP_GZIP_LEVEL:-2}
 RU_SCHEDULE_RAND=${RU_SCHEDULE_RAND:-10}
-RU_LOG_FILE=${RU_LOG_FILE:-/data/rutorrent/rutorrent.log}
+RU_LOG_FILE=${RU_LOG_FILE:-/config/rutorrent/rutorrent.log}
 RU_DO_DIAGNOSTIC=${RU_DO_DIAGNOSTIC:-true}
 RU_SAVE_UPLOADED_TORRENTS=${RU_SAVE_UPLOADED_TORRENTS:-true}
 RU_OVERWRITE_UPLOADED_TORRENTS=${RU_OVERWRITE_UPLOADED_TORRENTS:-false}
@@ -42,7 +42,7 @@ RU_FORBID_USER_SETTINGS=${RU_FORBID_USER_SETTINGS:-false}
 RU_LOCALE=${RU_LOCALE:-UTF8}
 
 RT_DHT_PORT=${RT_DHT_PORT:-6881}
-RT_INC_PORT=${RT_INC_PORT:-50000}
+RT_INC_PORT=${RT_INC_PORT:-51413}
 XMLRPC_PORT=${XMLRPC_PORT:-8000}
 XMLRPC_HEALTH_PORT=$((XMLRPC_PORT + 1))
 RUTORRENT_PORT=${RUTORRENT_PORT:-8080}
@@ -134,24 +134,21 @@ EOL
 
 # Init
 echo "Initializing files and folders..."
-mkdir -p /data/geoip \
-  /data/rtorrent/log \
-  /data/rtorrent/.session \
-  /data/rtorrent/watch \
-  /data/rutorrent/conf/users \
-  /data/rutorrent/plugins \
-  /data/rutorrent/plugins-conf \
-  /data/rutorrent/share/users \
-  /data/rutorrent/share/torrents \
-  /data/rutorrent/themes \
-  /downloads/complete \
-  /downloads/temp
+mkdir -p /config/geoip \
+  /config/rtorrent/log \
+  /config/rtorrent/.session \
+  /config/rtorrent/watch \
+  /config/rutorrent/conf/users \
+  /config/rutorrent/plugins \
+  /config/rutorrent/plugins-conf \
+  /config/rutorrent/share/users \
+  /config/rutorrent/share/torrents \
+  /config/rutorrent/themes
 touch /passwd/rpc.htpasswd \
   /passwd/rutorrent.htpasswd \
   /passwd/webdav.htpasswd \
-  /data/rtorrent/log/rtorrent.log \
   "${RU_LOG_FILE}"
-rm -f /data/rtorrent/.session/rtorrent.lock
+rm -f /config/rtorrent/.session/rtorrent.lock
 
 # Check htpasswd files
 if [ ! -s "/passwd/rpc.htpasswd" ]; then
@@ -188,11 +185,11 @@ fi
 
 # rTorrent config
 echo "Checking rTorrent configuration..."
-if [ ! -f /data/rtorrent/.rtorrent.rc ]; then
+if [ ! -f /config/rtorrent/.rtorrent.rc ]; then
   echo "  Creating default configuration..."
-  cp /tpls/.rtorrent.rc /data/rtorrent/.rtorrent.rc
+  cp /tpls/.rtorrent.rc /config/rtorrent/.rtorrent.rc
 fi
-chown rtorrent:rtorrent /data/rtorrent/.rtorrent.rc
+chown rtorrent:rtorrent /config/rtorrent/.rtorrent.rc
 
 # ruTorrent config
 echo "Bootstrapping ruTorrent configuration..."
@@ -255,7 +252,7 @@ cat > /var/www/rutorrent/conf/config.php <<EOL
 );
 
 // Path to user profiles
-\$profilePath = '/data/rutorrent/share';
+\$profilePath = '/config/rutorrent/share';
 // Mask for files and directory creation in user profiles.
 \$profileMask = 0770;
 
@@ -273,19 +270,19 @@ EOL
 chown nobody:nogroup "/var/www/rutorrent/conf/config.php"
 
 # Symlinking ruTorrent config
-ln -sf /data/rutorrent/conf/users /var/www/rutorrent/conf/users
-if [ ! -f /data/rutorrent/conf/access.ini ]; then
+ln -sf /config/rutorrent/conf/users /var/www/rutorrent/conf/users
+if [ ! -f /config/rutorrent/conf/access.ini ]; then
   echo "Symlinking ruTorrent access.ini file..."
-  mv /var/www/rutorrent/conf/access.ini /data/rutorrent/conf/access.ini
-  ln -sf /data/rutorrent/conf/access.ini /var/www/rutorrent/conf/access.ini
+  mv /var/www/rutorrent/conf/access.ini /config/rutorrent/conf/access.ini
+  ln -sf /config/rutorrent/conf/access.ini /var/www/rutorrent/conf/access.ini
 fi
-chown rtorrent:rtorrent /data/rutorrent/conf/access.ini
-if [ ! -f /data/rutorrent/conf/plugins.ini ]; then
+chown rtorrent:rtorrent /config/rutorrent/conf/access.ini
+if [ ! -f /config/rutorrent/conf/plugins.ini ]; then
   echo "Symlinking ruTorrent plugins.ini file..."
-  mv /var/www/rutorrent/conf/plugins.ini /data/rutorrent/conf/plugins.ini
-  ln -sf /data/rutorrent/conf/plugins.ini /var/www/rutorrent/conf/plugins.ini
+  mv /var/www/rutorrent/conf/plugins.ini /config/rutorrent/conf/plugins.ini
+  ln -sf /config/rutorrent/conf/plugins.ini /var/www/rutorrent/conf/plugins.ini
 fi
-chown rtorrent:rtorrent /data/rutorrent/conf/plugins.ini
+chown rtorrent:rtorrent /config/rutorrent/conf/plugins.ini
 
 # Remove ruTorrent core plugins
 if [ -n "$RU_REMOVE_CORE_PLUGINS" ]; then
@@ -313,7 +310,7 @@ else
 fi
 
 echo "Checking ruTorrent custom plugins..."
-plugins=$(ls -l /data/rutorrent/plugins | grep -E '^d' | awk '{print $9}')
+plugins=$(ls -l /config/rutorrent/plugins | grep -E '^d' | awk '{print $9}')
 for plugin in ${plugins}; do
   if [ "${plugin}" = "theme" ]; then
     echo "  WARNING: theme plugin cannot be overriden"
@@ -323,12 +320,12 @@ for plugin in ${plugins}; do
   if [ -d "/var/www/rutorrent/plugins/${plugin}" ]; then
     rm -rf "/var/www/rutorrent/plugins/${plugin}"
   fi
-  cp -Rf "/data/rutorrent/plugins/${plugin}" "/var/www/rutorrent/plugins/${plugin}"
+  cp -Rf "/config/rutorrent/plugins/${plugin}" "/var/www/rutorrent/plugins/${plugin}"
   chown -R nobody:nogroup "/var/www/rutorrent/plugins/${plugin}"
 done
 
 echo "Checking ruTorrent plugins configuration..."
-for pluginConfFile in /data/rutorrent/plugins-conf/*.php; do
+for pluginConfFile in /config/rutorrent/plugins-conf/*.php; do
   if [ ! -f "$pluginConfFile" ]; then
     continue
   fi
@@ -338,8 +335,8 @@ for pluginConfFile in /data/rutorrent/plugins-conf/*.php; do
     echo "  WARNING: $pluginName plugin does not exist"
     continue
   fi
-  if [ -d "/data/rutorrent/plugins/${pluginName}" ]; then
-    echo "  WARNING: $pluginName plugin already exist in /data/rutorrent/plugins/"
+  if [ -d "/config/rutorrent/plugins/${pluginName}" ]; then
+    echo "  WARNING: $pluginName plugin already exist in /config/rutorrent/plugins/"
     continue
   fi
   echo "  Copying ${pluginName} plugin config..."
@@ -348,48 +345,50 @@ for pluginConfFile in /data/rutorrent/plugins-conf/*.php; do
 done
 
 echo "Checking ruTorrent custom themes..."
-themes=$(ls -l /data/rutorrent/themes | grep -E '^d' | awk '{print $9}')
+themes=$(ls -l /config/rutorrent/themes | grep -E '^d' | awk '{print $9}')
 for theme in ${themes}; do
   echo "  Copying custom ${theme} theme..."
   if [ -d "/var/www/rutorrent/plugins/theme/themes/${theme}" ]; then
     rm -rf "/var/www/rutorrent/plugins/theme/themes/${theme}"
   fi
-  cp -Rf "/data/rutorrent/themes/${theme}" "/var/www/rutorrent/plugins/theme/themes/${theme}"
+  cp -Rf "/config/rutorrent/themes/${theme}" "/var/www/rutorrent/plugins/theme/themes/${theme}"
   chown -R nobody:nogroup "/var/www/rutorrent/plugins/theme/themes/${theme}"
 done
 
 echo "Setting GeoIP2 databases for geoip2 plugin..."
 if [ -d "/var/www/rutorrent/plugins/geoip2" ]; then
-  if [ ! "$(ls -A /data/geoip)" ]; then
-    cp -f /var/mmdb/*.mmdb /data/geoip/
+  if [ ! "$(ls -A /config/geoip)" ]; then
+    cp -f /var/mmdb/*.mmdb /config/geoip/
   fi
-  ln -sf /data/geoip/GeoLite2-ASN.mmdb /var/www/rutorrent/plugins/geoip2/database/GeoLite2-ASN.mmdb
-  ln -sf /data/geoip/GeoLite2-City.mmdb /var/www/rutorrent/plugins/geoip2/database/GeoLite2-City.mmdb
-  ln -sf /data/geoip/GeoLite2-Country.mmdb /var/www/rutorrent/plugins/geoip2/database/GeoLite2-Country.mmdb
+  ln -sf /config/geoip/GeoLite2-ASN.mmdb /var/www/rutorrent/plugins/geoip2/database/GeoLite2-ASN.mmdb
+  ln -sf /config/geoip/GeoLite2-City.mmdb /var/www/rutorrent/plugins/geoip2/database/GeoLite2-City.mmdb
+  ln -sf /config/geoip/GeoLite2-Country.mmdb /var/www/rutorrent/plugins/geoip2/database/GeoLite2-Country.mmdb
 else
   echo "  WARNING: geoip2 plugin does not exist"
 fi
 
 echo "Fixing perms..."
 chown rtorrent:rtorrent \
-  /data/rutorrent/share/users \
-  /data/rutorrent/share/torrents \
+  /config/rutorrent/share/users \
+  /config/rutorrent/share/torrents \
   /downloads \
   /downloads/complete \
   /downloads/temp \
   "${RU_LOG_FILE}"
 chown -R rtorrent:rtorrent \
-  /data/geoip \
-  /data/rtorrent/log \
-  /data/rtorrent/.session \
-  /data/rtorrent/watch \
-  /data/rutorrent/conf \
-  /data/rutorrent/plugins \
-  /data/rutorrent/plugins-conf \
-  /data/rutorrent/share \
-  /data/rutorrent/themes \
+  /config/geoip \
+  /config/rtorrent/log \
+  /config/rtorrent/.session \
+  /config/rtorrent/watch \
+  /config/rtorrent/watch/load \
+  /config/rtorrent/watch/start \
+  /config/rutorrent/conf \
+  /config/rutorrent/plugins \
+  /config/rutorrent/plugins-conf \
+  /config/rutorrent/share \
+  /config/rutorrent/themes \
   /etc/rtorrent
 chmod 644 \
-  /data/rtorrent/.rtorrent.rc \
+  /config/rtorrent/.rtorrent.rc \
   /passwd/*.htpasswd \
   /etc/rtorrent/.rtlocal.rc
