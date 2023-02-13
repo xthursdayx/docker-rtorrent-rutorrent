@@ -2,8 +2,9 @@
 # shellcheck shell=sh
 
 echo "Fixing perms..."
-mkdir -p /data/rtorrent \
-  /data/rutorrent \
+mkdir -p /config/rtorrent \
+  /config/rutorrent \
+  /data \
   /downloads \
   /passwd \
   /etc/nginx/conf.d \
@@ -15,9 +16,10 @@ mkdir -p /data/rtorrent \
   /var/run/php-fpm \
   /var/run/rtorrent
 chown rtorrent:rtorrent \
+  /config \
+  /config/rtorrent \
+  /config/rutorrent \
   /data \
-  /data/rtorrent \
-  /data/rutorrent \
   /downloads
 chown -R rtorrent:rtorrent \
   /etc/rtorrent \
@@ -30,3 +32,6 @@ chown -R rtorrent:rtorrent \
   /var/run/nginx \
   /var/run/php-fpm \
   /var/run/rtorrent
+
+echo "Applying permissions to ${CONFIG_DIR}"
+chmod "=rwx" "${CONFIG_DIR}"
