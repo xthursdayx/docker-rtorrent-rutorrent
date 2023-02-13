@@ -203,10 +203,19 @@ COPY --from=src-mmdb /src /var/mmdb
 ENV PYTHONPATH="$PYTHONPATH:/var/www/rutorrent" \
   S6_BEHAVIOUR_IF_STAGE2_FAILS="2" \
   S6_KILL_GRACETIME="10000" \
+  S6_CMD_WAIT_FOR_SERVICES_MAXTIME="0" \
+  XDG_CONFIG_HOME="${CONFIG_DIR}/.config" \
+  XDG_CACHE_HOME="${CONFIG_DIR}/.cache" \
+  XDG_DATA_HOME="${CONFIG_DIR}/.local/share" \
+  LANG="C.UTF-8" \
+  LC_ALL="C.UTF-8" \
   TZ="UTC" \
   PUID="1000" \
-  PGID="1000"
-
+  PGID="1000" \
+  APP_DIR="/app" \
+  CONFIG_DIR="/config" \
+  ARGS=""
+  
 # unrar package is not available since alpine 3.15
 RUN echo "@314 http://dl-cdn.alpinelinux.org/alpine/v3.14/main" >> /etc/apk/repositories \
   && apk --update --no-cache add unrar@314
@@ -266,7 +275,7 @@ RUN apk --update --no-cache add \
 
 COPY rootfs /
 
-VOLUME [ "/data", "/downloads", "/passwd" ]
+VOLUME [ "/data", "/downloads", "/passwd", "/config" ]
 ENTRYPOINT [ "/init" ]
 
 HEALTHCHECK --interval=30s --timeout=20s --start-period=10s \
