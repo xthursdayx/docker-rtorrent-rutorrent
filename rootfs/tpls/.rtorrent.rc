@@ -93,9 +93,6 @@ system.file.allocate.set = 1
 #method.insert = d.move_to_complete, simple, "d.directory.set=$argument.1=; execute=mkdir,-p,$argument.1=; execute=mv,-u,$argument.0=,$argument.1=; d.save_full_session="
 #method.set_key = event.download.finished,move_complete,"d.move_to_complete=$d.data_path=,$d.get_finished_dir="
 
-# Erase data when torrent deleted (no need erasedata plugin on ruTorrent)
-#method.set_key = event.download.erased,delete_erased,"execute=rm,-rf,--,$d.data_path="
-
 # Other operational settings
 system.cwd.set = (directory.default)
 network.http.dns_cache_timeout.set = 25

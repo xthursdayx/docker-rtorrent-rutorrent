@@ -1,5 +1,16 @@
 # Changelog
 
+## 4.0.4-0.9.8-0.13.8-r0 (2023/04/10)
+
+* ruTorrent v4.0.4 (#231)
+* Fix `RU_REMOVE_CORE_PLUGINS` defaults (#230)
+* Remove erase data workaround (#229)
+* Improve watch directory support (#219)
+
+## 4.0.2-0.9.8-0.13.8-r0 (2023/02/21)
+
+* ruTorrent v4.0.2-hotfix (#218)
+
 ## 4.0.1-0.9.8-0.13.8-r1 (2023/02/05)
 
 * Set `$localHostedMode = true` (#215)

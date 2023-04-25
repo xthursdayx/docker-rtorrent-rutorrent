@@ -25,6 +25,7 @@ RT_LOG_LEVEL=${RT_LOG_LEVEL:-info}
 RT_LOG_EXECUTE=${RT_LOG_EXECUTE:-false}
 RT_LOG_XMLRPC=${RT_LOG_XMLRPC:-false}
 
+RU_REMOVE_CORE_PLUGINS=${RU_REMOVE_CORE_PLUGINS:-httprpc}
 RU_HTTP_USER_AGENT=${RU_HTTP_USER_AGENT:-Mozilla/5.0 (Windows NT 6.0; WOW64; rv:12.0) Gecko/20100101 Firefox/12.0}
 RU_HTTP_TIME_OUT=${RU_HTTP_TIME_OUT:-30}
 RU_HTTP_USE_GZIP=${RU_HTTP_USE_GZIP:-true}
@@ -36,6 +37,9 @@ RU_PHP_GZIP_LEVEL=${RU_PHP_GZIP_LEVEL:-2}
 RU_SCHEDULE_RAND=${RU_SCHEDULE_RAND:-10}
 RU_LOG_FILE=${RU_LOG_FILE:-/config/rutorrent/rutorrent.log}
 RU_DO_DIAGNOSTIC=${RU_DO_DIAGNOSTIC:-true}
+RU_CACHED_PLUGIN_LOADING=${RU_CACHED_PLUGIN_LOADING:-false}
+RU_PLUGIN_JS_CACHE_EXPIRE=${RU_PLUGIN_JS_CACHE_EXPIRE:-3*60}
+RU_MISC_CACHE_EXPIRE=${RU_MISC_CACHE_EXPIRE:-3*60*24}
 RU_SAVE_UPLOADED_TORRENTS=${RU_SAVE_UPLOADED_TORRENTS:-true}
 RU_OVERWRITE_UPLOADED_TORRENTS=${RU_OVERWRITE_UPLOADED_TORRENTS:-false}
 RU_FORBID_USER_SETTINGS=${RU_FORBID_USER_SETTINGS:-false}
@@ -221,7 +225,16 @@ cat > /var/www/rutorrent/conf/config.php <<EOL
 \$localHostedMode = true;
 
 // Set to true to enable rapid cached loading of ruTorrent plugins
-\$cachedPluginLoading = false;
+\$cachedPluginLoading = ${RU_CACHED_PLUGIN_LOADING};
+
+// Sets duration ruTorrent plugin javascript cache is valid for in minutes
+// Default is 3 hours which equals 3 hours * 60 minutes due to caching issues
+// Optionally raise this value and clear web browser cache when upgrading versions
+\$pluginJSCacheExpire = ${RU_PLUGIN_JS_CACHE_EXPIRE};
+// Sets duration ruTorrent miscellaneous web browser cache is valid for in minutes
+// The goal here to avoid keeping stale content in the web browser
+// Default is 3 days which equals 3 days * 60 minutes * 24 hours
+\$miscCacheExpire = ${RU_MISC_CACHE_EXPIRE};
 
 // Save uploaded torrents to profile/torrents directory or not
 \$saveUploadedTorrents = ${RU_SAVE_UPLOADED_TORRENTS};
@@ -288,7 +301,7 @@ fi
 chown rtorrent:rtorrent /config/rutorrent/conf/plugins.ini
 
 # Remove ruTorrent core plugins
-if [ -n "$RU_REMOVE_CORE_PLUGINS" ]; then
+if [ "$RU_REMOVE_CORE_PLUGINS" != "false" ]; then
   for i in ${RU_REMOVE_CORE_PLUGINS//,/ }
   do
     if [ -z "$i" ]; then continue; fi

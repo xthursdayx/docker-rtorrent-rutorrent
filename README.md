@@ -136,7 +136,7 @@ Image: crazymax/rtorrent-rutorrent:latest
 
 ### ruTorrent
 
-* `RU_REMOVE_CORE_PLUGINS`: Remove ruTorrent core plugins ; comma separated (default `erasedata,httprpc`)
+* `RU_REMOVE_CORE_PLUGINS`: Comma separated list of core plugins to remove ; set to `false` to disable removal (default `httprpc`)
 * `RU_HTTP_USER_AGENT`: ruTorrent HTTP user agent (default `Mozilla/5.0 (Windows NT 6.0; WOW64; rv:12.0) Gecko/20100101 Firefox/12.0`)
 * `RU_HTTP_TIME_OUT`: ruTorrent HTTP timeout in seconds (default `30`)
 * `RU_HTTP_USE_GZIP`: Use HTTP Gzip compression (default `true`)
@@ -148,6 +148,9 @@ Image: crazymax/rtorrent-rutorrent:latest
 * `RU_SCHEDULE_RAND`: Rand for schedulers start, +0..X seconds (default `10`)
 * `RU_LOG_FILE`: ruTorrent log file path for errors messages (default `/data/rutorrent/rutorrent.log`)
 * `RU_DO_DIAGNOSTIC`: ruTorrent diagnostics like permission checking (default `true`)
+* `RU_CACHED_PLUGIN_LOADING`: Set to `true` to enable rapid cached loading of ruTorrent plugins (default `false`)
+* `RU_PLUGIN_JS_CACHE_EXPIRE`: Sets duration ruTorrent plugin javascript cache is valid for in minutes (default `3*60`)
+* `RU_MISC_CACHE_EXPIRE`: Sets duration ruTorrent miscellaneous web browser cache is valid for in minutes (default `3*60*24`)
 * `RU_SAVE_UPLOADED_TORRENTS`: Save torrents files added wia ruTorrent in `/data/rutorrent/share/torrents` (default `true`)
 * `RU_OVERWRITE_UPLOADED_TORRENTS`: Existing .torrent files will be overwritten (default `false`)
 * `RU_FORBID_USER_SETTINGS`: If true, allows for single user style configuration, even with webauth (default `false`)
