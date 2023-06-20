@@ -223,16 +223,8 @@ cat > /var/www/rutorrent/conf/config.php <<EOL
 \$localHostedMode = true;
 
 // Set to true to enable rapid cached loading of ruTorrent plugins
+// Required to clear web browser cache during version upgrades
 \$cachedPluginLoading = ${RU_CACHED_PLUGIN_LOADING};
-
-// Sets duration ruTorrent plugin javascript cache is valid for in minutes
-// Default is 3 hours which equals 3 hours * 60 minutes due to caching issues
-// Optionally raise this value and clear web browser cache when upgrading versions
-\$pluginJSCacheExpire = ${RU_PLUGIN_JS_CACHE_EXPIRE};
-// Sets duration ruTorrent miscellaneous web browser cache is valid for in minutes
-// The goal here to avoid keeping stale content in the web browser
-// Default is 3 days which equals 3 days * 60 minutes * 24 hours
-\$miscCacheExpire = ${RU_MISC_CACHE_EXPIRE};
 
 // Save uploaded torrents to profile/torrents directory or not
 \$saveUploadedTorrents = ${RU_SAVE_UPLOADED_TORRENTS};
