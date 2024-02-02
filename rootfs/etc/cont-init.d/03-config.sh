@@ -179,6 +179,7 @@ sed -e "s!@RT_LOG_LEVEL@!$RT_LOG_LEVEL!g" \
   -e "s!@RT_INC_PORT@!$RT_INC_PORT!g" \
   -e "s!@XMLRPC_SIZE_LIMIT@!$XMLRPC_SIZE_LIMIT!g" \
   -e "s!@RT_SESSION_SAVE_SECONDS@!$RT_SESSION_SAVE_SECONDS!g" \
+  -e "s!@RT_SESSION_SAVE_SECONDS@!$RT_SESSION_SAVE_SECONDS!g" \
   /tpls/etc/rtorrent/.rtlocal.rc > /etc/rtorrent/.rtlocal.rc
 if [ "${RT_LOG_EXECUTE}" = "true" ]; then
   echo "  Enabling rTorrent execute log..."
@@ -227,6 +228,7 @@ cat > /var/www/rutorrent/conf/config.php <<EOL
 \$localHostedMode = true;
 
 // Set to true to enable rapid cached loading of ruTorrent plugins
+// Required to clear web browser cache during version upgrades
 // Required to clear web browser cache during version upgrades
 \$cachedPluginLoading = ${RU_CACHED_PLUGIN_LOADING};
 
