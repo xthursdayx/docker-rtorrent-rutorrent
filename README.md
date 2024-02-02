@@ -42,6 +42,8 @@ ___
   * [Edit a ruTorrent plugin configuration](#edit-a-rutorrent-plugin-configuration)
   * [Increase Docker timeout to allow rTorrent to shutdown gracefully](#increase-docker-timeout-to-allow-rtorrent-to-shutdown-gracefully)
   * [WAN IP address](#wan-ip-address)
+  * [Configure rTorrent session saving](#configure-rtorrent-session-saving)
+  * [Configure rTorrent tracker scrape](#rtorrent-tracker-scrape-patch)
 * [Upgrade](#upgrade)
 * [Contributing](#contributing)
 * [License](#license)
@@ -51,8 +53,9 @@ ___
 * Run as non-root user
 * Multi-platform image
 * Latest [rTorrent](https://github.com/rakshasa/rtorrent) / [libTorrent](https://github.com/rakshasa/libtorrent) release compiled from source
+* Includes [rTorrent patches](./patches/rtorrent) to increase software stability
 * Latest [ruTorrent](https://github.com/Novik/ruTorrent) release
-* Name resolving enhancements with [c-ares](https://github.com/rakshasa/rtorrent/wiki/Performance-Tuning#rtrorrent-with-c-ares) for asynchronous DNS requests (including name resolves)
+* Domain name resolving enhancements with [c-ares](https://github.com/rakshasa/rtorrent/wiki/Performance-Tuning#rtrorrent-with-c-ares) and [UDNS](https://www.corpit.ru/mjt/udns.html) for asynchronous DNS requests
 * Enhanced [rTorrent config](rootfs/tpls/.rtorrent.rc) and bootstraping with a [local config](rootfs/tpls/etc/rtorrent/.rtlocal.rc)
 * XMLRPC through nginx over SCGI socket (basic auth optional)
 * WebDAV on completed downloads (basic auth optional)
@@ -131,6 +134,8 @@ Image: crazymax/rtorrent-rutorrent:latest
 * `RT_LOG_LEVEL`: rTorrent log level (default `info`)
 * `RT_LOG_EXECUTE`: Log executed commands to `/data/rtorrent/log/execute.log` (default `false`)
 * `RT_LOG_XMLRPC`: Log XMLRPC queries to `/data/rtorrent/log/xmlrpc.log` (default `false`)
+* `RT_SESSION_SAVE_SECONDS`: Seconds between writing torrent information to disk (default `3600`)
+* `RT_TRACKER_DELAY_SCRAPE`: Delay tracker announces at startup (default `true`)
 * `RT_DHT_PORT`: DHT UDP port (`dht.port.set`, default `6881`)
 * `RT_INC_PORT`: Incoming connections (`network.port_range.set`, default `50000`)
 
@@ -149,8 +154,6 @@ Image: crazymax/rtorrent-rutorrent:latest
 * `RU_LOG_FILE`: ruTorrent log file path for errors messages (default `/data/rutorrent/rutorrent.log`)
 * `RU_DO_DIAGNOSTIC`: ruTorrent diagnostics like permission checking (default `true`)
 * `RU_CACHED_PLUGIN_LOADING`: Set to `true` to enable rapid cached loading of ruTorrent plugins (default `false`)
-* `RU_PLUGIN_JS_CACHE_EXPIRE`: Sets duration ruTorrent plugin javascript cache is valid for in minutes (default `3*60`)
-* `RU_MISC_CACHE_EXPIRE`: Sets duration ruTorrent miscellaneous web browser cache is valid for in minutes (default `3*60*24`)
 * `RU_SAVE_UPLOADED_TORRENTS`: Save torrents files added wia ruTorrent in `/data/rutorrent/share/torrents` (default `true`)
 * `RU_OVERWRITE_UPLOADED_TORRENTS`: Existing .torrent files will be overwritten (default `false`)
 * `RU_FORBID_USER_SETTINGS`: If true, allows for single user style configuration, even with webauth (default `false`)
@@ -330,6 +333,26 @@ resolve your public IP address. Here are some commands you can use:
 * `dig +short myip.opendns.com @resolver1.opendns.com`
 * `curl -s ifconfig.me`
 * `curl -s ident.me` 
+
+### Configure rTorrent session saving
+
+`RT_SESSION_SAVE_SECONDS` is the seconds between writing torrent information to disk.
+The default is 3600 seconds which equals 1 hour. rTorrent has a bad default of 20 minutes.
+Twenty minutes is bad for the lifespan of SSDs and greatly reduces torrent throughput.
+
+It is no longer possible to lose torrents added through ruTorrent on this docker container.
+Only torrent statistics are lost during a crash. (Ratio, Total Uploaded & Downloaded etc.)
+
+Higher values will reduce disk usage, at the cost of minor stat loss during a crash.
+Consider increasing to 10800 seconds (3 hours) if running thousands of torrents.
+
+### rTorrent tracker scrape patch
+
+`RT_TRACKER_DELAY_SCRAPE` specifies whether to delay tracker announces at rTorrent startup.
+The default value is `true`. There are two main benefits to keeping this feature enabled:
+
+1) Software Stability: rTorrent will not crash or time-out with tens of thousands of trackers.
+2) Immediate Access: ruTorrent can be accessed immediately after rTorrent is started.
 
 ## Upgrade
 

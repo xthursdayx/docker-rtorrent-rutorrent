@@ -1,5 +1,61 @@
 # Changelog
 
+## 4.2.9-0.9.8_2-0.13.8_2-r0 (2023/12/27)
+
+* UDNS support (#303)
+* Fix PHP version in rtlocal.rc (#305)
+
+## 4.2.9-0.9.8_2-0.13.8_1-r0 (2023/12/23)
+
+* rTorrent: tracker scrape feature patch (#288)
+* Alpine Linux 3.19 and PHP 8.2 (#297)
+* cURL 8.5.0, c-ares 1.24.0 (#295)
+
+## 4.2.9-0.9.8_2-0.13.8_1-r0 (2023/12/22)
+
+* rTorrent: tracker scrape feature patch (#288)
+* cURL 8.5.0, c-ares 1.24.0 (#295)
+
+## 4.2.9-0.9.8_1-0.13.8_1-r0 (2023/12/17)
+
+* rTorrent patches
+  * Avoid stack overflow for lockfile buffer
+  * Increase maximum SCGI request to 16MB
+  * Fix saving session files
+  * Fix a common rtorrent xml-rpc crash when trying to queue an invalid task
+  * Resolve xmlrpc logic crash
+* libtorrent patches
+  * Allow 10 gigabit speed throttles
+
+## 4.2.9-0.9.8-0.13.8-r0 (2023/11/18)
+
+* ruTorrent v4.2.9 (#282)
+
+## 4.2.6-0.9.8-0.13.8-r0 (2023/09/24)
+
+* ruTorrent v4.2.6 (#266)
+
+## 4.2.5-0.9.8-0.13.8-r0 (2023/08/29)
+* ruTorrent v4.2.5 (#263)
+
+## 4.2.2-0.9.8-0.13.8-r0 (2023/08/13)
+* ruTorrent v4.2.2 (#260)
+
+## 4.1.7-0.9.8-0.13.8-r0 (2023/08/01)
+
+* ruTorrent v4.1.7 (#251 #248)
+* Alpine Linux 3.18 (#258)
+
+## 4.1.5-0.9.8-0.13.8-r1 (2023/05/17)
+
+* Improve session saving in rTorrent (#242)
+
+## 4.1.5-0.9.8-0.13.8-r0 (2023/05/02)
+
+* ruTorrent v4.1.5 (#238)
+* Optimize cURL build (#239)
+* Add `php81-dom` extension (#237)
+
 ## 4.0.4-0.9.8-0.13.8-r0 (2023/04/10)
 
 * ruTorrent v4.0.4 (#231)

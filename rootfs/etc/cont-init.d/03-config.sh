@@ -24,6 +24,8 @@ WEBDAV_AUTHBASIC_STRING=${WEBDAV_AUTHBASIC_STRING:-WebDAV restricted access}
 RT_LOG_LEVEL=${RT_LOG_LEVEL:-info}
 RT_LOG_EXECUTE=${RT_LOG_EXECUTE:-false}
 RT_LOG_XMLRPC=${RT_LOG_XMLRPC:-false}
+RT_SESSION_SAVE_SECONDS=${RT_SESSION_SAVE_SECONDS:-3600}
+RT_TRACKER_DELAY_SCRAPE=${RT_TRACKER_DELAY_SCRAPE:-true}
 
 RU_REMOVE_CORE_PLUGINS=${RU_REMOVE_CORE_PLUGINS:-httprpc}
 RU_HTTP_USER_AGENT=${RU_HTTP_USER_AGENT:-Mozilla/5.0 (Windows NT 6.0; WOW64; rv:12.0) Gecko/20100101 Firefox/12.0}
@@ -38,8 +40,6 @@ RU_SCHEDULE_RAND=${RU_SCHEDULE_RAND:-10}
 RU_LOG_FILE=${RU_LOG_FILE:-/config/rutorrent/rutorrent.log}
 RU_DO_DIAGNOSTIC=${RU_DO_DIAGNOSTIC:-true}
 RU_CACHED_PLUGIN_LOADING=${RU_CACHED_PLUGIN_LOADING:-false}
-RU_PLUGIN_JS_CACHE_EXPIRE=${RU_PLUGIN_JS_CACHE_EXPIRE:-3*60}
-RU_MISC_CACHE_EXPIRE=${RU_MISC_CACHE_EXPIRE:-3*60*24}
 RU_SAVE_UPLOADED_TORRENTS=${RU_SAVE_UPLOADED_TORRENTS:-true}
 RU_OVERWRITE_UPLOADED_TORRENTS=${RU_OVERWRITE_UPLOADED_TORRENTS:-false}
 RU_FORBID_USER_SETTINGS=${RU_FORBID_USER_SETTINGS:-false}
@@ -73,17 +73,17 @@ echo "Setting PHP-FPM configuration..."
 sed -e "s/@MEMORY_LIMIT@/$MEMORY_LIMIT/g" \
   -e "s/@UPLOAD_MAX_SIZE@/$UPLOAD_MAX_SIZE/g" \
   -e "s/@CLEAR_ENV@/$CLEAR_ENV/g" \
-  /tpls/etc/php81/php-fpm.d/www.conf > /etc/php81/php-fpm.d/www.conf
+  /tpls/etc/php82/php-fpm.d/www.conf > /etc/php82/php-fpm.d/www.conf
 
 echo "Setting PHP INI configuration..."
-sed -i "s|memory_limit.*|memory_limit = ${MEMORY_LIMIT}|g" /etc/php81/php.ini
-sed -i "s|;date\.timezone.*|date\.timezone = ${TZ}|g" /etc/php81/php.ini
-sed -i "s|max_file_uploads.*|max_file_uploads = ${MAX_FILE_UPLOADS}|g" /etc/php81/php.ini
+sed -i "s|memory_limit.*|memory_limit = ${MEMORY_LIMIT}|g" /etc/php82/php.ini
+sed -i "s|;date\.timezone.*|date\.timezone = ${TZ}|g" /etc/php82/php.ini
+sed -i "s|max_file_uploads.*|max_file_uploads = ${MAX_FILE_UPLOADS}|g" /etc/php82/php.ini
 
 # OpCache
 echo "Setting OpCache configuration..."
 sed -e "s/@OPCACHE_MEM_SIZE@/$OPCACHE_MEM_SIZE/g" \
-  /tpls/etc/php81/conf.d/opcache.ini > /etc/php81/conf.d/opcache.ini
+  /tpls/etc/php82/conf.d/opcache.ini > /etc/php82/conf.d/opcache.ini
 
 # Nginx
 echo "Setting Nginx configuration..."
@@ -151,6 +151,7 @@ mkdir -p /config/geoip \
 touch /passwd/rpc.htpasswd \
   /passwd/rutorrent.htpasswd \
   /passwd/webdav.htpasswd \
+  /config/rtorrent/log/rtorrent.log \
   "${RU_LOG_FILE}"
 rm -f /config/rtorrent/.session/rtorrent.lock
 
@@ -177,6 +178,7 @@ sed -e "s!@RT_LOG_LEVEL@!$RT_LOG_LEVEL!g" \
   -e "s!@RT_DHT_PORT@!$RT_DHT_PORT!g" \
   -e "s!@RT_INC_PORT@!$RT_INC_PORT!g" \
   -e "s!@XMLRPC_SIZE_LIMIT@!$XMLRPC_SIZE_LIMIT!g" \
+  -e "s!@RT_SESSION_SAVE_SECONDS@!$RT_SESSION_SAVE_SECONDS!g" \
   /tpls/etc/rtorrent/.rtlocal.rc > /etc/rtorrent/.rtlocal.rc
 if [ "${RT_LOG_EXECUTE}" = "true" ]; then
   echo "  Enabling rTorrent execute log..."
@@ -225,16 +227,8 @@ cat > /var/www/rutorrent/conf/config.php <<EOL
 \$localHostedMode = true;
 
 // Set to true to enable rapid cached loading of ruTorrent plugins
+// Required to clear web browser cache during version upgrades
 \$cachedPluginLoading = ${RU_CACHED_PLUGIN_LOADING};
-
-// Sets duration ruTorrent plugin javascript cache is valid for in minutes
-// Default is 3 hours which equals 3 hours * 60 minutes due to caching issues
-// Optionally raise this value and clear web browser cache when upgrading versions
-\$pluginJSCacheExpire = ${RU_PLUGIN_JS_CACHE_EXPIRE};
-// Sets duration ruTorrent miscellaneous web browser cache is valid for in minutes
-// The goal here to avoid keeping stale content in the web browser
-// Default is 3 days which equals 3 days * 60 minutes * 24 hours
-\$miscCacheExpire = ${RU_MISC_CACHE_EXPIRE};
 
 // Save uploaded torrents to profile/torrents directory or not
 \$saveUploadedTorrents = ${RU_SAVE_UPLOADED_TORRENTS};
