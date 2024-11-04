@@ -1,17 +1,18 @@
 # syntax=docker/dockerfile:1
 
 ARG LIBSIG_VERSION=3.0.3
-ARG CARES_VERSION=1.24.0
+ARG CARES_VERSION=1.31.0
 ARG CURL_VERSION=8.5.0
 ARG XMLRPC_VERSION=01.58.00
-ARG LIBTORRENT_VERSION=v0.13.8
-ARG RTORRENT_VERSION=v0.9.8
 ARG MKTORRENT_VERSION=v1.1
 ARG GEOIP2_PHPEXT_VERSION=1.3.1
 
-# v4.2.10
-ARG RUTORRENT_VERSION=c9644dda7a9ac1b3fc8b663392c4168adbe5a312
+# v4.3.6
+ARG RUTORRENT_VERSION=31c8d351002fb1bdcd71c0652aa516384d330712
 ARG GEOIP2_RUTORRENT_VERSION=4ff2bde530bb8eef13af84e4413cedea97eda148
+
+# v6.1-0.9.8-0.13.8
+ARG RTORRENT_STICKZ_VERSION=7e852c88465682864ef80d86f1d085d932ef3d89
 
 ARG ALPINE_VERSION=3.19
 ARG ALPINE_S6_VERSION=${ALPINE_VERSION}-2.2.0.3
@@ -26,7 +27,7 @@ RUN curl -sSL "https://download.gnome.org/sources/libsigc%2B%2B/3.0/libsigc%2B%2
 
 FROM src AS src-cares
 ARG CARES_VERSION
-RUN curl -sSL "https://c-ares.org/download/c-ares-${CARES_VERSION}.tar.gz" | tar xz --strip 1
+RUN curl -sSL "https://github.com/c-ares/c-ares/releases/download/v${CARES_VERSION}/c-ares-${CARES_VERSION}.tar.gz" | tar xz --strip 1
 
 FROM src AS src-xmlrpc
 RUN git init . && git remote add origin "https://github.com/crazy-max/xmlrpc-c.git"
@@ -37,18 +38,13 @@ FROM src AS src-curl
 ARG CURL_VERSION
 RUN curl -sSL "https://curl.se/download/curl-${CURL_VERSION}.tar.gz" | tar xz --strip 1
 
-FROM src AS src-libtorrent
-RUN git init . && git remote add origin "https://github.com/rakshasa/libtorrent.git"
-ARG LIBTORRENT_VERSION
-RUN git fetch origin "${LIBTORRENT_VERSION}" && git checkout -q FETCH_HEAD
-
 FROM src AS src-rtorrent
-RUN git init . && git remote add origin "https://github.com/rakshasa/rtorrent.git"
-ARG RTORRENT_VERSION
-RUN git fetch origin "${RTORRENT_VERSION}" && git checkout -q FETCH_HEAD
+RUN git init . && git remote add origin "https://github.com/stickz/rtorrent.git"
+ARG RTORRENT_STICKZ_VERSION
+RUN git fetch origin "${RTORRENT_STICKZ_VERSION}" && git checkout -q FETCH_HEAD
 
 FROM src AS src-mktorrent
-RUN git init . && git remote add origin "https://github.com/esmil/mktorrent.git"
+RUN git init . && git remote add origin "https://github.com/pobrn/mktorrent.git"
 ARG MKTORRENT_VERSION
 RUN git fetch origin "${MKTORRENT_VERSION}" && git checkout -q FETCH_HEAD
 
@@ -90,7 +86,6 @@ RUN apk --update --no-cache add \
     ncurses-dev \
     nghttp2-dev \
     openssl-dev \
-    patch \
     pcre-dev \
     php82-dev \
     php82-pear \
@@ -128,47 +123,38 @@ RUN tree ${DIST_PATH}
 
 WORKDIR /usr/local/src/xmlrpc
 COPY --from=src-xmlrpc /src .
-RUN ./configure --disable-wininet-client --disable-libwww-client --disable-cplusplus
+RUN ./configure --disable-wininet-client --disable-libwww-client --disable-cplusplus --disable-abyss-server --disable-cgi-server
 RUN make -j$(nproc) CFLAGS="-w -O3 -flto" CXXFLAGS="-w -O3 -flto"
-RUN make install -j$(nproc)
-RUN make DESTDIR=${DIST_PATH} install -j$(nproc)
-RUN tree ${DIST_PATH}
-
-WORKDIR /usr/local/src/libtorrent
-COPY --from=src-libtorrent /src .
-COPY /patches/libtorrent .
-RUN patch -p1 < throttle-fix-0.13.8.patch \
-  && patch -p1 < libtorrent-udns-0.13.8.patch \
-  && patch -p1 < libtorrent-scanf-0.13.8.patch
-RUN ./autogen.sh
-RUN ./configure --with-posix-fallocate --enable-aligned
-RUN make -j$(nproc) CXXFLAGS="-w -O3 -flto"
 RUN make install -j$(nproc)
 RUN make DESTDIR=${DIST_PATH} install -j$(nproc)
 RUN tree ${DIST_PATH}
 
 WORKDIR /usr/local/src/rtorrent
 COPY --from=src-rtorrent /src .
-COPY /patches/rtorrent .
-RUN patch -p1 < lockfile-fix.patch \
-  && patch -p1 < rtorrent-scrape.patch \
-  && patch -p1 < scgi-fix.patch \
-  && patch -p1 < session-file-fix.patch \
-  && patch -p1 < xmlrpc-fix.patch \
-  && patch -p1 < xmlrpc-logic-fix.patch \
-  && patch -p1 < rtorrent-ml-cg-fix.patch \
-  && patch -p1 < rtorrent-ml-cui-fix.patch \
-  && patch -p1 < rtorrent-ml-dc-fix.patch
+
+WORKDIR /usr/local/src/rtorrent/libtorrent
+RUN ./autogen.sh
+RUN ./configure --enable-aligned --disable-instrumentation --enable-udns
+RUN make -j$(nproc) CXXFLAGS="-w -O3 -flto -Werror=odr -Werror=lto-type-mismatch -Werror=strict-aliasing"
+RUN make install -j$(nproc)
+RUN make DESTDIR=${DIST_PATH} install -j$(nproc)
+RUN tree ${DIST_PATH}
+
+WORKDIR /usr/local/src/rtorrent/rtorrent
 RUN ./autogen.sh
 RUN ./configure --with-xmlrpc-c --with-ncurses
-RUN make -j$(nproc) CXXFLAGS="-w -O3 -flto"
+RUN make -j$(nproc) CXXFLAGS="-w -O3 -flto -Werror=odr -Werror=lto-type-mismatch -Werror=strict-aliasing"
 RUN make install -j$(nproc)
 RUN make DESTDIR=${DIST_PATH} install -j$(nproc)
 RUN tree ${DIST_PATH}
 
 WORKDIR /usr/local/src/mktorrent
 COPY --from=src-mktorrent /src .
-RUN make -j$(nproc) CC=gcc CFLAGS="-w -O3 -flto"
+RUN echo "CC = gcc" >> Makefile	
+RUN echo "CFLAGS = -w -flto -O3" >> Makefile
+RUN echo "USE_PTHREADS = 1" >> Makefile
+RUN echo "USE_OPENSSL = 1" >> Makefile
+RUN make -j$(nproc)
 RUN make install -j$(nproc)
 RUN make DESTDIR=${DIST_PATH} install -j$(nproc)
 RUN tree ${DIST_PATH}
@@ -207,7 +193,12 @@ ENV PYTHONPATH="$PYTHONPATH:/var/www/rutorrent" \
   APP_DIR="/app" \
   CONFIG_DIR="/config" \
   ARGS=""
-  
+
+# increase rmem_max and wmem_max for rTorrent configuration
+RUN echo "net.core.rmem_max = 67108864" >> /etc/sysctl.conf \
+  && echo "net.core.wmem_max = 67108864" >> /etc/sysctl.conf \
+  && sysctl -p
+
 # unrar package is not available since alpine 3.15
 RUN echo "@314 http://dl-cdn.alpinelinux.org/alpine/v3.14/main" >> /etc/apk/repositories \
   && apk --update --no-cache add unrar@314
@@ -239,6 +230,7 @@ RUN apk --update --no-cache add \
     php82-ctype \
     php82-curl \
     php82-dom \
+    php82-fileinfo \
     php82-fpm \
     php82-mbstring \
     php82-openssl \

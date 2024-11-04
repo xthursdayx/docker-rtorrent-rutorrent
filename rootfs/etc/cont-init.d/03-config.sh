@@ -26,8 +26,11 @@ RT_LOG_EXECUTE=${RT_LOG_EXECUTE:-false}
 RT_LOG_XMLRPC=${RT_LOG_XMLRPC:-false}
 RT_SESSION_SAVE_SECONDS=${RT_SESSION_SAVE_SECONDS:-3600}
 RT_TRACKER_DELAY_SCRAPE=${RT_TRACKER_DELAY_SCRAPE:-true}
+RT_SEND_BUFFER_SIZE=${RT_SEND_BUFFER_SIZE:-4M}
+RT_RECEIVE_BUFFER_SIZE=${RT_RECEIVE_BUFFER_SIZE:-4M}
+RT_PREALLOCATE_TYPE=${RT_PREALLOCATE_TYPE:-0}
 
-RU_REMOVE_CORE_PLUGINS=${RU_REMOVE_CORE_PLUGINS:-httprpc}
+RU_REMOVE_CORE_PLUGINS=${RU_REMOVE_CORE_PLUGINS:-false}
 RU_HTTP_USER_AGENT=${RU_HTTP_USER_AGENT:-Mozilla/5.0 (Windows NT 6.0; WOW64; rv:12.0) Gecko/20100101 Firefox/12.0}
 RU_HTTP_TIME_OUT=${RU_HTTP_TIME_OUT:-30}
 RU_HTTP_USE_GZIP=${RU_HTTP_USE_GZIP:-true}
@@ -179,7 +182,10 @@ sed -e "s!@RT_LOG_LEVEL@!$RT_LOG_LEVEL!g" \
   -e "s!@RT_INC_PORT@!$RT_INC_PORT!g" \
   -e "s!@XMLRPC_SIZE_LIMIT@!$XMLRPC_SIZE_LIMIT!g" \
   -e "s!@RT_SESSION_SAVE_SECONDS@!$RT_SESSION_SAVE_SECONDS!g" \
-  -e "s!@RT_SESSION_SAVE_SECONDS@!$RT_SESSION_SAVE_SECONDS!g" \
+  -e "s!@RT_TRACKER_DELAY_SCRAPE@!$RT_TRACKER_DELAY_SCRAPE!g" \
+  -e "s!@RT_SEND_BUFFER_SIZE@!$RT_SEND_BUFFER_SIZE!g" \
+  -e "s!@RT_RECEIVE_BUFFER_SIZE@!$RT_RECEIVE_BUFFER_SIZE!g" \
+  -e "s!@RT_PREALLOCATE_TYPE@!$RT_PREALLOCATE_TYPE!g" \
   /tpls/etc/rtorrent/.rtlocal.rc > /etc/rtorrent/.rtlocal.rc
 if [ "${RT_LOG_EXECUTE}" = "true" ]; then
   echo "  Enabling rTorrent execute log..."
@@ -246,7 +252,7 @@ cat > /var/www/rutorrent/conf/config.php <<EOL
 \$scgi_port = 0;
 \$scgi_host = "unix:///var/run/rtorrent/scgi.socket";
 \$XMLRPCMountPoint = "/RPC2"; // DO NOT DELETE THIS LINE!!! DO NOT COMMENT THIS LINE!!!
-\$throttleMaxSpeed = 327625*1024; // DO NOT EDIT THIS LINE!!! DO NOT COMMENT THIS LINE!!!
+\$throttleMaxSpeed = 4294967294; // DO NOT EDIT THIS LINE!!! DO NOT COMMENT THIS LINE!!!
 
 \$pathToExternals = array(
     "php"    => '',
@@ -301,6 +307,11 @@ if [ "$RU_REMOVE_CORE_PLUGINS" != "false" ]; then
   for i in ${RU_REMOVE_CORE_PLUGINS//,/ }
   do
     if [ -z "$i" ]; then continue; fi
+    if [ "$i" == "httprpc" ]; then
+      echo "Warning: skipping core plugin httprpc, required for ruTorrent v4.3+ operation"
+      echo "Please remove httprpc from RU_REMOVE_CORE_PLUGINS environment varriable"
+      continue;
+    fi  
     echo "Removing core plugin $i..."
     rm -rf "/var/www/rutorrent/plugins/${i}"
   done
@@ -315,6 +326,7 @@ if [ -d "/var/www/rutorrent/plugins/create" ]; then
 \$useExternal = 'mktorrent';
 \$pathToCreatetorrent = '/usr/local/bin/mktorrent';
 \$recentTrackersMaxCount = 15;
+\$useInternalHybrid = true;
 EOL
   chown nobody:nogroup "/var/www/rutorrent/plugins/create/conf.php"
 else
