@@ -11,8 +11,9 @@ ARG RUTORRENT_VERSION=04a26034b3b0f9ea4d3be4c0d2b5edde667ac214
 ARG GEOIP2_RUTORRENT_VERSION=4ff2bde530bb8eef13af84e4413cedea97eda148
 ARG DUMP_TORRENT_VERSION=302ac444a20442edb4aeabef65b264a85ab88ce9
 
-# rtorrent and libtorrent version 0.15.3
+# libtorrent v0.15.3
 ARG LIBTORRENT_VERSION=0cb559ea23fa67ded8aea69c93cba50ae0ab243f
+# rtorrent v0.15.3
 ARG RTORRENT_VERSION=6f8c1246dc013d1d5c39ecd66373346ac42fe746
 
 ARG ALPINE_VERSION=3.21
@@ -151,7 +152,7 @@ RUN tree ${DIST_PATH}
 
 WORKDIR /usr/local/src/mktorrent
 COPY --from=src-mktorrent /src .
-RUN echo "CC = gcc" >> Makefile	
+RUN echo "CC = gcc" >> Makefile
 RUN echo "CFLAGS = -w -flto -O3" >> Makefile
 RUN echo "USE_PTHREADS = 1" >> Makefile
 RUN echo "USE_OPENSSL = 1" >> Makefile

@@ -11,7 +11,7 @@
 
 ## About
 
-[stickz rTorrent](https://github.com/stickz/rtorrent) with [ruTorrent](https://github.com/Novik/ruTorrent)
+[rTorrent](https://github.com/rakshasa/rtorrent) with [ruTorrent](https://github.com/Novik/ruTorrent)
 Docker image.
 
 > [!TIP] 
@@ -54,7 +54,7 @@ ___
 
 * Run as non-root user
 * Multi-platform image
-* Latest rTorrent and libTorrent from [rTorrent stickz](https://github.com/stickz/rtorrent) project.
+* Latest [rTorrent](https://github.com/rakshasa/rtorrent) / [libTorrent](https://github.com/rakshasa/libtorrent) release compiled from source
   * Includes significant performance and stability improvements.
   * Includes compatibility with Link Time Optimizations.
 * Latest [ruTorrent](https://github.com/Novik/ruTorrent) release
