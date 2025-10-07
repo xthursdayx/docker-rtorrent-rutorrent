@@ -44,7 +44,7 @@ trackers.numwant.set = -1
 # Set the max amount of memory address space used to mapping file chunks. This refers to memory mapping, not
 # physical memory allocation. Default: 1GB (max_memory_usage)
 # This may also be set using ulimit -m where 3/4 will be allocated to file chunks
-#pieces.memory.max.set = 4GB
+pieces.memory.max.set = 4GB
 
 # Check hash for finished torrents. Might be usefull until the bug is
 # fixed that causes lack of diskspace not to be properly reported
@@ -59,8 +59,8 @@ pieces.preload.type.set = 2
 #  (you have to modify the system wide settings!) (`send_buffer_size`, `receive_buffer_size`)
 # Increasing buffer sizes may help reduce disk seeking, connection polling as more data is buffered each time
 #  the socket is written to. It will result higher memory usage (not visible in rtorrent process!).
-network.send_buffer.size.set = 64M
-network.receive_buffer.size.set = 4M
+network.send_buffer.size.set = 128M
+network.receive_buffer.size.set = 128M
 
 # Alternative calls to bind and ip that should handle dynamic ip's
 #schedule2 = ip_tick,0,1800,ip=rakshasa
@@ -95,6 +95,6 @@ system.file.allocate.set = 1
 
 # Other operational settings
 system.cwd.set = (directory.default)
-network.http.dns_cache_timeout.set = 25
+network.http.dns_cache_timeout.set = 0
 network.http.ssl_verify_peer.set = 0
 network.http.ssl_verify_host.set = 0
