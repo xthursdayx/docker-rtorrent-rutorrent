@@ -96,6 +96,7 @@ RUN apk --update --no-cache add \
     ncurses-dev \
     nghttp2-dev \
     openssl-dev \
+    patch \
     pcre-dev \
     php83-dev \
     php83-pear \
@@ -133,6 +134,8 @@ RUN tree ${DIST_PATH}
 
 WORKDIR /usr/local/src/libtorrent
 COPY --from=src-libtorrent /src .
+COPY /patches/libtorrent .
+RUN patch -p1 < libtorrent-0.15.3-resume-fix.patch
 RUN autoreconf -vfi
 RUN ./configure --enable-aligned
 
