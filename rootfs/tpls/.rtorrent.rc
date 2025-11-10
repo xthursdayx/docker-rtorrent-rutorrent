@@ -71,7 +71,7 @@ network.receive_buffer.size.set = 128M
 protocol.encryption.set = allow_incoming,try_outgoing,enable_retry
 
 # Set the umask for this process, which is applied to all files created by the program
-system.umask.set = 0027
+system.umask.set = 0022
 
 # Add a preferred filename encoding to the list
 encoding.add = UTF-8
