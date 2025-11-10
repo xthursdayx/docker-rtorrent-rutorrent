@@ -1,13 +1,13 @@
 # Maximum and minimum number of peers to connect to per torrent
-throttle.min_peers.normal.set = 1
-throttle.max_peers.normal.set = 150
+throttle.min_peers.normal.set = 99
+throttle.max_peers.normal.set = 400
 
 # Same as above but for seeding completed torrents (-1 = same as downloading)
-throttle.min_peers.seed.set = 1
-throttle.max_peers.seed.set = 150
+throttle.min_peers.seed.set = -1
+throttle.max_peers.seed.set = -1
 
 # Maximum number of simultanious uploads per torrent
-throttle.max_uploads.set = 100
+throttle.max_uploads.set = 300
 throttle.max_uploads.global.set = 300
 
 # Global upload and download rate in KiB. "0" for unlimited
@@ -44,7 +44,7 @@ trackers.numwant.set = -1
 # Set the max amount of memory address space used to mapping file chunks. This refers to memory mapping, not
 # physical memory allocation. Default: 1GB (max_memory_usage)
 # This may also be set using ulimit -m where 3/4 will be allocated to file chunks
-pieces.memory.max.set = 4GB
+pieces.memory.max.set = 4096M
 
 # Check hash for finished torrents. Might be usefull until the bug is
 # fixed that causes lack of diskspace not to be properly reported
@@ -95,6 +95,6 @@ system.file.allocate.set = 1
 
 # Other operational settings
 system.cwd.set = (directory.default)
-network.http.dns_cache_timeout.set = 0
+network.http.dns_cache_timeout.set = 25
 network.http.ssl_verify_peer.set = 0
 network.http.ssl_verify_host.set = 0

@@ -1,8 +1,7 @@
 # syntax=docker/dockerfile:1
 
-ARG LIBSIG_VERSION=3.0.3
 ARG CARES_VERSION=1.34.5
-ARG CURL_VERSION=8.14.1
+ARG CURL_VERSION=8.17.0
 
 ARG LIBTORRENT_VERSION=v0.16.1
 ARG RTORRENT_VERSION=v0.16.1
@@ -11,7 +10,6 @@ ARG MKTORRENT_VERSION=v1.1
 ARG GEOIP2_PHPEXT_VERSION=1.3.1
 
 ARG RUTORRENT_VERSION=v5.2.10
-
 ARG GEOIP2_RUTORRENT_VERSION=4ff2bde530bb8eef13af84e4413cedea97eda148
 ARG DUMPTORRENT_VERSION=v1.7.0
 
@@ -21,10 +19,6 @@ ARG ALPINE_S6_VERSION=${ALPINE_VERSION}-2.2.0.3
 FROM --platform=${BUILDPLATFORM} alpine:${ALPINE_VERSION} AS src
 RUN apk --update --no-cache add curl git tar tree sed xz
 WORKDIR /src
-
-FROM src AS src-libsig
-ARG LIBSIG_VERSION
-RUN curl -sSL "https://download.gnome.org/sources/libsigc%2B%2B/3.0/libsigc%2B%2B-${LIBSIG_VERSION}.tar.xz" | tar xJv --strip 1
 
 FROM src AS src-cares
 ARG CARES_VERSION
@@ -89,6 +83,7 @@ RUN apk --update --no-cache add \
     gd-dev \
     geoip-dev \
     libpsl-dev \
+    libsigc++3-dev \
     libtool \
     libxslt-dev \
     linux-headers \
@@ -100,7 +95,6 @@ RUN apk --update --no-cache add \
     php84-pear \
     tar \
     tree \
-    udns-dev \
     xz \
     zlib-dev
 
@@ -108,14 +102,6 @@ RUN ln -s /usr/bin/php84 /usr/bin/php \
  && ln -s /usr/bin/php-config84 /usr/bin/php-config
 
 ENV DIST_PATH="/dist"
-
-WORKDIR /usr/local/src/libsig
-COPY --from=src-libsig /src .
-RUN ./configure
-RUN make -j$(nproc)
-RUN make install -j$(nproc)
-RUN make DESTDIR=${DIST_PATH} install -j$(nproc)
-RUN tree ${DIST_PATH}
 
 WORKDIR /usr/local/src/cares
 COPY --from=src-cares /src .
@@ -137,8 +123,6 @@ WORKDIR /usr/local/src/libtorrent
 COPY --from=src-libtorrent /src .
 RUN autoreconf -vfi
 RUN ./configure --enable-aligned
-
-
 RUN make -j$(nproc) CXXFLAGS="-w -O3 -flto -Werror=odr -Werror=lto-type-mismatch -Werror=strict-aliasing"
 RUN make install -j$(nproc)
 RUN make DESTDIR=${DIST_PATH} install -j$(nproc)
@@ -184,7 +168,6 @@ RUN cmake --build build/ --config Release --parallel $(nproc)
 RUN cp build/dumptorrent build/scrapec ${DIST_PATH}/usr/local/bin
 RUN tree ${DIST_PATH}
 
-
 FROM crazymax/alpine-s6:${ALPINE_S6_VERSION}
 COPY --from=builder /dist /
 COPY --from=src-rutorrent --chown=nobody:nogroup /src /var/www/rutorrent
@@ -205,7 +188,6 @@ ENV PYTHONPATH="$PYTHONPATH:/var/www/rutorrent" \
   PGID="1000" \
   APP_DIR="/app" \
   CONFIG_DIR="/config" \
-  ARGS=""
 
 # increase rmem_max and wmem_max for rTorrent configuration
 RUN echo "net.core.rmem_max = 67108864" >> /etc/sysctl.conf \
@@ -226,13 +208,12 @@ RUN apk --update --no-cache add \
     brotli \
     ca-certificates \
     coreutils \
-    cppunit-dev \
-    dhclient \
     ffmpeg \
     findutils \
     geoip \
     grep \
     gzip \
+    libsigc++3 \
     libstdc++ \
     mediainfo \
     ncurses \
@@ -261,7 +242,6 @@ RUN apk --update --no-cache add \
     sox \
     tar \
     tzdata \
-    udns \
     unzip \
     util-linux \
     zip \
