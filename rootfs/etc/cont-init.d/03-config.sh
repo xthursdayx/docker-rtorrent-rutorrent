@@ -45,6 +45,7 @@ RU_SCHEDULE_RAND=${RU_SCHEDULE_RAND:-10}
 RU_LOG_FILE=${RU_LOG_FILE:-/config/rutorrent/rutorrent.log}
 RU_DO_DIAGNOSTIC=${RU_DO_DIAGNOSTIC:-true}
 RU_CACHED_PLUGIN_LOADING=${RU_CACHED_PLUGIN_LOADING:-false}
+RU_PLUGIN_MINIFICATION=${RU_PLUGIN_MINIFICATION:-true}
 RU_SAVE_UPLOADED_TORRENTS=${RU_SAVE_UPLOADED_TORRENTS:-true}
 RU_OVERWRITE_UPLOADED_TORRENTS=${RU_OVERWRITE_UPLOADED_TORRENTS:-false}
 RU_FORBID_USER_SETTINGS=${RU_FORBID_USER_SETTINGS:-false}
@@ -243,7 +244,6 @@ cat > /var/www/rutorrent/conf/config.php <<EOL
 \$localHostedMode = true;
 
 // Set to true to enable rapid cached loading of ruTorrent plugins
-// Required to clear web browser cache during version upgrades
 // Required to clear web browser cache during version upgrades
 \$cachedPluginLoading = ${RU_CACHED_PLUGIN_LOADING};
 

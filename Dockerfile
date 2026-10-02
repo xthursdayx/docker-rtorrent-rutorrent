@@ -8,7 +8,7 @@ ARG RTORRENT_VERSION=v0.16.23
 
 ARG MKTORRENT_VERSION=v1.1
 
-ARG RUTORRENT_VERSION=v5.3.15
+ARG RUTORRENT_VERSION=v5.3.14
 ARG DUMPTORRENT_VERSION=v1.7.0
 
 ARG ALPINE_VERSION=3.23
@@ -47,6 +47,7 @@ FROM src AS src-rutorrent
 RUN git init . && git remote add origin "https://github.com/Novik/ruTorrent.git"
 ARG RUTORRENT_VERSION
 RUN git fetch origin "${RUTORRENT_VERSION}" && git checkout -q FETCH_HEAD
+RUN rm -rf .git* conf/users plugins/geoip share
 
 FROM composer:2 AS update-geoip2-rutorrent
 WORKDIR /app
