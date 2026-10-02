@@ -143,9 +143,9 @@ linux/arm64
 * `RT_TRACKER_DELAY_SCRAPE`: Delay tracker announces at startup (default `true`)
 * `RT_DHT_PORT`: DHT UDP port (`dht.override_port.set`, default `6881`)
 * `RT_INC_PORT`: Incoming connections (`network.listen.port.range.set`, default `50000`)
-* `RT_SEND_BUFFER_SIZE`: Sets default tcp wmem value (`network.send_buffer.size.set`, default `4M`)
-* `RT_RECEIVE_BUFFER_SIZE`: Sets default tcp rmem value (`network.receive_buffer.size.set`, default `4M`)
-* `RT_PREALLOCATE_TYPE`: Sets the type of [disk space preallocation](#rtorrent-disk-space-preallocation) (default `0`)
+* `RT_SEND_BUFFER_SIZE`: Sets default tcp wmem value (`network.send_buffer.size.set`, default `128M`)
+* `RT_RECEIVE_BUFFER_SIZE`: Sets default tcp rmem value (`network.receive_buffer.size.set`, default `128M`)
+* `RT_PREALLOCATE_TYPE`: Sets the type of [disk space preallocation](#rtorrent-disk-space-preallocation) (default `1`)
 
 ### ruTorrent
 

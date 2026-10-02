@@ -31,7 +31,7 @@ protocol.pex.set = yes
 
 # Check hash for finished torrents. Might be useful until the bug is
 # fixed that causes lack of diskspace not to be properly reported
-pieces.hash.on_completion.set = yes
+pieces.hash.on_completion.set = no
 
 trackers.numwant.set = -1
 
@@ -42,10 +42,6 @@ trackers.numwant.set = -1
 # physical memory allocation. Default: 1GB
 # This may also be set using ulimit -m where 3/4 will be allocated to file chunks
 pieces.memory.max.set = 4096M
-
-# Check hash for finished torrents. Might be usefull until the bug is
-# fixed that causes lack of diskspace not to be properly reported
-pieces.hash.on_completion.set = no
 
 # Preloading a piece of a file. Default: `0` Possible values: `0` (Off) , `1` (Madvise) , `2` (Direct paging).
 pieces.preload.type.set = 2
