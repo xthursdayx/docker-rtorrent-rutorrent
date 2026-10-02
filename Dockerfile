@@ -8,7 +8,7 @@ ARG RTORRENT_VERSION=v0.16.23
 
 ARG MKTORRENT_VERSION=v1.1
 
-ARG RUTORRENT_VERSION=v5.3.14
+ARG RUTORRENT_VERSION=v5.3.15
 ARG DUMPTORRENT_VERSION=v1.7.0
 
 ARG ALPINE_VERSION=3.23
@@ -166,20 +166,21 @@ COPY --from=src-rutorrent --chown=nobody:nogroup /src /var/www/rutorrent
 COPY --from=src-geoip2-rutorrent --chown=nobody:nogroup /src /var/www/rutorrent/plugins/geoip2
 COPY --from=src-mmdb /src /var/mmdb
 
+ENV APP_DIR="/app" \
+  CONFIG_DIR="/config"
+
 ENV PYTHONPATH="/var/www/rutorrent" \
   S6_BEHAVIOUR_IF_STAGE2_FAILS="2" \
   S6_KILL_GRACETIME="10000" \
   S6_CMD_WAIT_FOR_SERVICES_MAXTIME="0" \
+  XDG_CONFIG_HOME="${CONFIG_DIR}/.config" \
+  XDG_CACHE_HOME="${CONFIG_DIR}/.cache" \
+  XDG_DATA_HOME="${CONFIG_DIR}/.local/share" \
   LANG="C.UTF-8" \
   LC_ALL="C.UTF-8" \
   TZ="UTC" \
   PUID="1000" \
-  PGID="1000" \
-  APP_DIR="/app" \
-  CONFIG_DIR="/config" \
-  XDG_CONFIG_HOME="${CONFIG_DIR}/.config" \
-  XDG_CACHE_HOME="${CONFIG_DIR}/.cache" \
-  XDG_DATA_HOME="${CONFIG_DIR}/.local/share"
+  PGID="1000" 
 
 # increase rmem_max and wmem_max for rTorrent configuration
 RUN echo "net.core.rmem_max = 67108864" >> /etc/sysctl.conf \
