@@ -158,7 +158,6 @@ mkdir -p /config/geoip \
 touch /passwd/rpc.htpasswd \
   /passwd/rutorrent.htpasswd \
   /passwd/webdav.htpasswd \
-  /config/rtorrent/log/rtorrent.log \
   "${RU_LOG_FILE}"
 rm -f /config/rtorrent/.session/rtorrent.lock
 
