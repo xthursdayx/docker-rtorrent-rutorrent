@@ -170,16 +170,16 @@ ENV PYTHONPATH="/var/www/rutorrent" \
   S6_BEHAVIOUR_IF_STAGE2_FAILS="2" \
   S6_KILL_GRACETIME="10000" \
   S6_CMD_WAIT_FOR_SERVICES_MAXTIME="0" \
-  XDG_CONFIG_HOME="${CONFIG_DIR}/.config" \
-  XDG_CACHE_HOME="${CONFIG_DIR}/.cache" \
-  XDG_DATA_HOME="${CONFIG_DIR}/.local/share" \
   LANG="C.UTF-8" \
   LC_ALL="C.UTF-8" \
   TZ="UTC" \
   PUID="1000" \
   PGID="1000" \
   APP_DIR="/app" \
-  CONFIG_DIR="/config"
+  CONFIG_DIR="/config" \
+  XDG_CONFIG_HOME="${CONFIG_DIR}/.config" \
+  XDG_CACHE_HOME="${CONFIG_DIR}/.cache" \
+  XDG_DATA_HOME="${CONFIG_DIR}/.local/share"
 
 # increase rmem_max and wmem_max for rTorrent configuration
 RUN echo "net.core.rmem_max = 67108864" >> /etc/sysctl.conf \
