@@ -412,8 +412,6 @@ chown rtorrent:rtorrent \
   /config/rutorrent/share/users \
   /config/rutorrent/share/torrents \
   /downloads \
-  /downloads/complete \
-  /downloads/temp \
   "${RU_LOG_FILE}"
 chown -R rtorrent:rtorrent \
   /config/geoip \
