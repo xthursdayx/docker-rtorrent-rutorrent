@@ -7,6 +7,7 @@
 TZ=${TZ:-UTC}
 MEMORY_LIMIT=${MEMORY_LIMIT:-256M}
 UPLOAD_MAX_SIZE=${UPLOAD_MAX_SIZE:-16M}
+NGINX_WORKER_PROCESSES=${NGINX_WORKER_PROCESSES:-auto}
 CLEAR_ENV=${CLEAR_ENV:-yes}
 OPCACHE_MEM_SIZE=${OPCACHE_MEM_SIZE:-128}
 MAX_FILE_UPLOADS=${MAX_FILE_UPLOADS:-50}
@@ -25,13 +26,14 @@ RT_LOG_LEVEL=${RT_LOG_LEVEL:-info}
 RT_LOG_EXECUTE=${RT_LOG_EXECUTE:-false}
 RT_LOG_XMLRPC=${RT_LOG_XMLRPC:-false}
 RT_SESSION_SAVE_SECONDS=${RT_SESSION_SAVE_SECONDS:-3600}
+RT_SESSION_FDATASYNC=${RT_SESSION_FDATASYNC:-false}
 RT_TRACKER_DELAY_SCRAPE=${RT_TRACKER_DELAY_SCRAPE:-true}
 RT_SEND_BUFFER_SIZE=${RT_SEND_BUFFER_SIZE:-4M}
 RT_RECEIVE_BUFFER_SIZE=${RT_RECEIVE_BUFFER_SIZE:-4M}
 RT_PREALLOCATE_TYPE=${RT_PREALLOCATE_TYPE:-0}
 
 RU_REMOVE_CORE_PLUGINS=${RU_REMOVE_CORE_PLUGINS:-false}
-RU_HTTP_USER_AGENT=${RU_HTTP_USER_AGENT:-Mozilla/5.0 (Windows NT 6.0; WOW64; rv:12.0) Gecko/20100101 Firefox/12.0}
+RU_HTTP_USER_AGENT=${RU_HTTP_USER_AGENT:-Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36}
 RU_HTTP_TIME_OUT=${RU_HTTP_TIME_OUT:-30}
 RU_HTTP_USE_GZIP=${RU_HTTP_USE_GZIP:-true}
 RU_RPC_TIME_OUT=${RU_RPC_TIME_OUT:-5}
@@ -91,6 +93,7 @@ sed -e "s/@OPCACHE_MEM_SIZE@/$OPCACHE_MEM_SIZE/g" \
 # Nginx
 echo "Setting Nginx configuration..."
 sed -e "s#@REAL_IP_FROM@#$REAL_IP_FROM#g" \
+  -e "s/@NGINX_WORKER_PROCESSES@/$NGINX_WORKER_PROCESSES/g" \
   -e "s#@REAL_IP_HEADER@#$REAL_IP_HEADER#g" \
   -e "s#@LOG_IP_VAR@#$LOG_IP_VAR#g" \
   -e "s#@AUTH_DELAY@#$AUTH_DELAY#g" \
@@ -182,6 +185,7 @@ sed -e "s!@RT_LOG_LEVEL@!$RT_LOG_LEVEL!g" \
   -e "s!@RT_INC_PORT@!$RT_INC_PORT!g" \
   -e "s!@XMLRPC_SIZE_LIMIT@!$XMLRPC_SIZE_LIMIT!g" \
   -e "s!@RT_SESSION_SAVE_SECONDS@!$RT_SESSION_SAVE_SECONDS!g" \
+  -e "s!@RT_SESSION_FDATASYNC@!$RT_SESSION_FDATASYNC!g" \
   -e "s!@RT_TRACKER_DELAY_SCRAPE@!$RT_TRACKER_DELAY_SCRAPE!g" \
   -e "s!@RT_SEND_BUFFER_SIZE@!$RT_SEND_BUFFER_SIZE!g" \
   -e "s!@RT_RECEIVE_BUFFER_SIZE@!$RT_RECEIVE_BUFFER_SIZE!g" \
@@ -193,7 +197,7 @@ if [ "${RT_LOG_EXECUTE}" = "true" ]; then
 fi
 if [ "${RT_LOG_XMLRPC}" = "true" ]; then
   echo "  Enabling rTorrent xmlrpc log..."
-  sed -i "s!#log\.xmlrpc.*!log\.xmlrpc = (cat,(cfg.logs),\"xmlrpc.log\")!g" /etc/rtorrent/.rtlocal.rc
+  sed -i "s!#log\.rpc.*!log\.rpc = (cat,(cfg.logs),\"xmlrpc.log\")!g" /etc/rtorrent/.rtlocal.rc
 fi
 
 # rTorrent config
@@ -213,6 +217,11 @@ cat > /var/www/rutorrent/conf/config.php <<EOL
 \$httpUserAgent = '${RU_HTTP_USER_AGENT}';
 \$httpTimeOut = ${RU_HTTP_TIME_OUT};
 \$httpUseGzip = ${RU_HTTP_USE_GZIP};
+
+// Keep ruTorrent's private-network fetch guard disabled by default to avoid
+// breaking local indexers, feeds, and torrent link services.
+\$httpBlockPrivateNetworks = false;
+\$httpPrivateNetworkAllowlist = array();
 
 // for xmlrpc actions
 \$rpcTimeOut = ${RU_RPC_TIME_OUT};
@@ -238,6 +247,10 @@ cat > /var/www/rutorrent/conf/config.php <<EOL
 // Required to clear web browser cache during version upgrades
 \$cachedPluginLoading = ${RU_CACHED_PLUGIN_LOADING};
 
+// Stable change to reduce loading times by minimizing JavaScript networked
+// Only recommended to disable when required for debuging purposes
+\$pluginMinification = ${RU_PLUGIN_MINIFICATION};
+
 // Save uploaded torrents to profile/torrents directory or not
 \$saveUploadedTorrents = ${RU_SAVE_UPLOADED_TORRENTS};
 
@@ -251,8 +264,10 @@ cat > /var/www/rutorrent/conf/config.php <<EOL
 // For web->rtorrent link through unix domain socket
 \$scgi_port = 0;
 \$scgi_host = "unix:///var/run/rtorrent/scgi.socket";
-\$XMLRPCMountPoint = "/RPC2"; // DO NOT DELETE THIS LINE!!! DO NOT COMMENT THIS LINE!!!
-\$throttleMaxSpeed = 4294967294; // DO NOT EDIT THIS LINE!!! DO NOT COMMENT THIS LINE!!!
+
+// Same as upstream config: https://github.com/Novik/ruTorrent/blob/v5.3.7/conf/config.php#L48-L51
+\$XMLRPCMountPoint = "/RPC2";
+\$throttleMaxSpeed = 327625*1024; // Can't be greater than 327625*1024 due to limitation in libtorrent ResourceManager::set_max_upload_unchoked function.
 
 \$pathToExternals = array(
     "php"    => '',
@@ -265,6 +280,7 @@ cat > /var/www/rutorrent/conf/config.php <<EOL
 
 // List of local interfaces
 \$localhosts = array(
+    "::1",
     "127.0.0.1",
     "localhost",
 );

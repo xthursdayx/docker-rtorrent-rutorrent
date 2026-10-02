@@ -6,7 +6,7 @@ throttle.max_peers.normal.set = 400
 throttle.min_peers.seed.set = -1
 throttle.max_peers.seed.set = -1
 
-# Maximum number of simultanious uploads per torrent
+# Maximum number of simultaneous uploads per torrent
 throttle.max_uploads.set = 300
 throttle.max_uploads.global.set = 300
 
@@ -29,20 +29,17 @@ dht.mode.set = disable
 # Enable peer exchange (for torrents not marked private)
 protocol.pex.set = yes
 
-# Check hash for finished torrents. Might be usefull until the bug is
+# Check hash for finished torrents. Might be useful until the bug is
 # fixed that causes lack of diskspace not to be properly reported
 pieces.hash.on_completion.set = yes
-
-# Set whether the client should try to connect to UDP trackers
-trackers.use_udp.set = yes
 
 trackers.numwant.set = -1
 
 # Memory resource usage (increase if you have a large number of items loaded,
 # and/or the available resources to spend)
 
-# Set the max amount of memory address space used to mapping file chunks. This refers to memory mapping, not
-# physical memory allocation. Default: 1GB (max_memory_usage)
+# Set the max amount of memory address space used for mapping file chunks. This refers to memory mapping, not
+# physical memory allocation. Default: 1GB
 # This may also be set using ulimit -m where 3/4 will be allocated to file chunks
 pieces.memory.max.set = 4096M
 
@@ -63,8 +60,8 @@ network.send_buffer.size.set = 128M
 network.receive_buffer.size.set = 128M
 
 # Alternative calls to bind and ip that should handle dynamic ip's
-#schedule2 = ip_tick,0,1800,ip=rakshasa
-#schedule2 = bind_tick,0,1800,bind=rakshasa
+#schedule = ip_tick,0,1800,network.local_address.set=rakshasa
+#schedule = bind_tick,0,1800,network.bind_address.set=rakshasa
 
 # Encryption options, set to none (default) or any combination of the following:
 # allow_incoming, try_outgoing, require, require_RC4, enable_retry, prefer_plaintext
@@ -73,22 +70,19 @@ protocol.encryption.set = allow_incoming,try_outgoing,enable_retry
 # Set the umask for this process, which is applied to all files created by the program
 system.umask.set = 0022
 
-# Add a preferred filename encoding to the list
-encoding.add = UTF-8
-
 ## Watch directories (add more as you like, but use unique schedule names)
 ## Add torrent
-schedule2 = watch_load, 5, 5, ((load.verbose,(cat,(cfg.watch),"load/*.torrent")))
+schedule = watch_load, 5, 5, ((load.verbose,(cat,(cfg.watch),"load/*.torrent")))
 ## Add & download straight away
-schedule2 = watch_start, 1, 1, ((load.start_verbose,(cat,(cfg.watch),"start/*.torrent")))
+schedule = watch_start, 1, 1, ((load.start_verbose,(cat,(cfg.watch),"start/*.torrent")))
 
 # Close torrents when diskspace is low
-schedule2 = monitor_diskspace, 15, 60, ((close_low_diskspace,1000M))
+schedule = monitor_diskspace, 15, 60, ((close_low_diskspace,1000M))
 
 # Whether to allocate disk space for a new torrent. Default: `0`
 system.file.allocate.set = 1
 
-# Move finished (no need Autotools/Automove plugin on ruTorrent)
+# Move finished (without Autotools/Automove plugin on ruTorrent)
 #method.insert = d.get_finished_dir, simple, "cat=$cfg.download_complete=,$d.custom1="
 #method.insert = d.move_to_complete, simple, "d.directory.set=$argument.1=; execute=mkdir,-p,$argument.1=; execute=mv,-u,$argument.0=,$argument.1=; d.save_full_session="
 #method.set_key = event.download.finished,move_complete,"d.move_to_complete=$d.data_path=,$d.get_finished_dir="

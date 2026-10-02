@@ -37,6 +37,7 @@ ___
   * [XMLRPC through nginx](#xmlrpc-through-nginx)
   * [WebDAV](#webdav)
   * [Populate .htpasswd files](#populate-htpasswd-files)
+  * [Check ruTorrent environment](#check-rutorrent-environment)
   * [Bootstrap config `.rtlocal.rc`](#bootstrap-config-rtlocalrc)
   * [Override or add a ruTorrent plugin/theme](#override-or-add-a-rutorrent-plugintheme)
   * [Edit a ruTorrent plugin configuration](#edit-a-rutorrent-plugin-configuration)
@@ -64,7 +65,7 @@ ___
 * WebDAV on completed downloads (basic auth optional)
 * Ability to add a custom ruTorrent plugin / theme
 * Allow persisting specific configuration for ruTorrent plugins
-* ruTorrent [GeoIP2 plugin](https://github.com/Micdu70/geoip2-rutorrent)
+* Vendored ruTorrent [GeoIP2 plugin](geoip2-rutorrent)
 * [mktorrent](https://github.com/pobrn/mktorrent) compiled from source for ruTorrent create plugin
 * [DumpTorrent](https://github.com/tomcdj71/dumptorrent) compiled from source for ruTorrent dump plugin
 * [Traefik](https://github.com/containous/traefik-library-image) Docker image as reverse proxy and creation/renewal of Let's Encrypt certificates (see [this template](examples/traefik))
@@ -114,6 +115,7 @@ linux/arm64
 * `WAN_IP`: [Public IP address](#wan-ip-address) reported to the tracker (auto if empty)
 * `WAN_IP_CMD`: Command to resolve the [Public IP address](#wan-ip-address)
 * `MEMORY_LIMIT`: PHP memory limit (default `256M`)
+* `NGINX_WORKER_PROCESSES`: Number of Nginx worker processes (default `auto`)
 * `UPLOAD_MAX_SIZE`: Upload max size (default `16M`)
 * `CLEAR_ENV`: Clear environment in FPM workers (default `yes`)
 * `OPCACHE_MEM_SIZE`: PHP OpCache memory consumption (default `128`)
@@ -137,9 +139,10 @@ linux/arm64
 * `RT_LOG_EXECUTE`: Log executed commands to `/data/rtorrent/log/execute.log` (default `false`)
 * `RT_LOG_XMLRPC`: Log XMLRPC queries to `/data/rtorrent/log/xmlrpc.log` (default `false`)
 * `RT_SESSION_SAVE_SECONDS`: Seconds between writing torrent information to disk (default `3600`)
+* `RT_SESSION_FDATASYNC`: Force fdatasync when saving sessions (`system.files.session.fdatasync.set`, default `false`)
 * `RT_TRACKER_DELAY_SCRAPE`: Delay tracker announces at startup (default `true`)
-* `RT_DHT_PORT`: DHT UDP port (`dht.port.set`, default `6881`)
-* `RT_INC_PORT`: Incoming connections (`network.port_range.set`, default `50000`)
+* `RT_DHT_PORT`: DHT UDP port (`dht.override_port.set`, default `6881`)
+* `RT_INC_PORT`: Incoming connections (`network.listen.port.range.set`, default `50000`)
 * `RT_SEND_BUFFER_SIZE`: Sets default tcp wmem value (`network.send_buffer.size.set`, default `4M`)
 * `RT_RECEIVE_BUFFER_SIZE`: Sets default tcp rmem value (`network.receive_buffer.size.set`, default `4M`)
 * `RT_PREALLOCATE_TYPE`: Sets the type of [disk space preallocation](#rtorrent-disk-space-preallocation) (default `0`)
@@ -147,7 +150,7 @@ linux/arm64
 ### ruTorrent
 
 * `RU_REMOVE_CORE_PLUGINS`: Comma separated list of core plugins to remove ; set to `false` to disable removal 
-* `RU_HTTP_USER_AGENT`: ruTorrent HTTP user agent (default `Mozilla/5.0 (Windows NT 6.0; WOW64; rv:12.0) Gecko/20100101 Firefox/12.0`)
+* `RU_HTTP_USER_AGENT`: ruTorrent HTTP user agent (default `Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36`)
 * `RU_HTTP_TIME_OUT`: ruTorrent HTTP timeout in seconds (default `30`)
 * `RU_HTTP_USE_GZIP`: Use HTTP Gzip compression (default `true`)
 * `RU_RPC_TIME_OUT`: ruTorrent RPC timeout in seconds (default `5`)
@@ -159,6 +162,7 @@ linux/arm64
 * `RU_LOG_FILE`: ruTorrent log file path for errors messages (default `/data/rutorrent/rutorrent.log`)
 * `RU_DO_DIAGNOSTIC`: ruTorrent diagnostics like permission checking (default `true`)
 * `RU_CACHED_PLUGIN_LOADING`: Set to `true` to enable rapid cached loading of ruTorrent plugins (default `false`)
+* `RU_PLUGIN_MINIFICATION`: Set to `false` to disable plugins minification (default `true`)
 * `RU_SAVE_UPLOADED_TORRENTS`: Save torrents files added wia ruTorrent in `/data/rutorrent/share/torrents` (default `true`)
 * `RU_OVERWRITE_UPLOADED_TORRENTS`: Existing .torrent files will be overwritten (default `false`)
 * `RU_FORBID_USER_SETTINGS`: If true, allows for single user style configuration, even with webauth (default `false`)
@@ -170,19 +174,23 @@ linux/arm64
 * `/downloads`: Downloaded files
 * `/passwd`: Contains htpasswd files for basic auth
 
-> :warning: Note that the volumes should be owned by the user/group with the specified `PUID` and `PGID`. If you don't
-> give the volumes correct permissions, the container may not start.
+> [!WARNING]
+> Note that the volumes should be owned by the user/group with the specified
+> `PUID` and `PGID`. If you don't give the volumes correct permissions, the
+> container may not start.
 
 ## Ports
 
-* `6881` (or `RT_DHT_PORT`): DHT UDP port (`dht.port.set`)
+* `6881` (or `RT_DHT_PORT`): DHT UDP port (`dht.override_port.set`)
 * `8000` (or `XMLRPC_PORT`): XMLRPC port through nginx over SCGI socket
 * `8080` (or `RUTORRENT_PORT`): ruTorrent HTTP port
 * `9000` (or `WEBDAV_PORT`): WebDAV port on completed downloads
-* `50000` (or `RT_INC_PORT`): Incoming connections (`network.port_range.set`)
+* `50000` (or `RT_INC_PORT`): Incoming connections (`network.listen.port.range.set`)
 
-> :warning: Port p+1 defined for `XMLRPC_PORT`, `RUTORRENT_PORT` and `WEBDAV_PORT` will also be reserved for
-> healthcheck. (e.g. if you define `RUTORRENT_PORT=8080`, port `8081` will be reserved)
+> [!WARNING]
+> Port p+1 defined for `XMLRPC_PORT`, `RUTORRENT_PORT` and `WEBDAV_PORT` will
+> also be reserved for health check. (e.g. if you define `RUTORRENT_PORT=8080`,
+> port `8081` will be reserved)
 
 ## Usage
 
@@ -253,6 +261,14 @@ Htpasswd files used:
 * `rutorrent.htpasswd`: ruTorrent basic auth
 * `webdav.htpasswd`: WebDAV on completed downloads
 
+### Check ruTorrent environment
+
+You can run ruTorrent's bundled environment checker inside a running container:
+
+```shell
+docker exec rtorrent-rutorrent rutorrent-env-check
+```
+
 ### Bootstrap config `.rtlocal.rc`
 
 When rTorrent is started the bootstrap config [/etc/rtorrent/.rtlocal.rc](rootfs/tpls/etc/rtorrent/.rtlocal.rc)
@@ -275,8 +291,8 @@ properties of this file:
 * `session.path.set`: Default session directory (`cfg.session`)
 * PID file to `/var/run/rtorrent/rtorrent.pid`
 * `network.scgi.open_local`: SCGI local socket and make it group-writable and secure
-* `network.port_range.set`: Listening port for incoming peer traffic (`50000-50000`)
-* `dht.port.set`: UDP port to use for DHT (`6881`)
+* `network.listen.port.range.set`: Listening port for incoming peer traffic (`50000-50000`)
+* `dht.override_port.set`: UDP port to use for DHT (`6881`)
 * `log.open_file`: Default logging to `/data/rtorrent/log/rtorrent.log`
   * Log level can be modified with the environment variable `RT_LOG_LEVEL`
   * `rpc_events` are logged be default
@@ -290,7 +306,8 @@ plugin that already exists in ruTorrent, it will be removed from ruTorrent core
 plugins and yours will be used. And you can also add a theme in `/data/rutorrent/themes/`.
 The same principle as for plugins will be used if you want to override one.
 
-> :warning: Container has to be restarted to propagate changes
+ [!WARNING]
+> Container has to be restarted to propagate changes
 
 ### Edit a ruTorrent plugin configuration
 
@@ -310,7 +327,8 @@ $partitionDirectory = null;	// if null, then we will check rtorrent download dir
 				// otherwise, set this to the absolute path for checked partition. 
 ```
 
-> :warning: Container has to be restarted to propagate changes
+> [!WARNING]
+> Container has to be restarted to propagate changes
 
 ### Increase Docker timeout to allow rTorrent to shutdown gracefully
 
@@ -353,6 +371,11 @@ Total Uploaded & Downloaded etc.)
 Higher values will reduce disk usage, at the cost of minor stat loss during a
 crash. Consider increasing to 10800 seconds (3 hours) if running thousands of
 torrents.
+
+`RT_SESSION_FDATASYNC` controls whether each session save forces an immediate
+disk flush. It defaults to `false` to avoid long synchronous stalls with large
+sessions on slow disks.
+
 
 ### rTorrent tracker scrape patch
 
