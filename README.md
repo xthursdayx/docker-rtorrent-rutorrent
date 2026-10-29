@@ -136,8 +136,8 @@ linux/arm64
 ### rTorrent
 
 * `RT_LOG_LEVEL`: rTorrent log level (default `info`)
-* `RT_LOG_EXECUTE`: Log executed commands to `/data/rtorrent/log/execute.log` (default `false`)
-* `RT_LOG_XMLRPC`: Log XMLRPC queries to `/data/rtorrent/log/xmlrpc.log` (default `false`)
+* `RT_LOG_EXECUTE`: Log executed commands to `/config/rtorrent/log/execute.log` (default `false`)
+* `RT_LOG_XMLRPC`: Log XMLRPC queries to `/config/rtorrent/log/xmlrpc.log` (default `false`)
 * `RT_SESSION_SAVE_SECONDS`: Seconds between writing torrent information to disk (default `3600`)
 * `RT_SESSION_FDATASYNC`: Force fdatasync when saving sessions (`system.files.session.fdatasync.set`, default `false`)
 * `RT_TRACKER_DELAY_SCRAPE`: Delay tracker announces at startup (default `true`)
@@ -160,11 +160,11 @@ linux/arm64
 * `RU_PHP_USE_GZIP`: Use PHP Gzip compression (default `false`)
 * `RU_PHP_GZIP_LEVEL`: PHP Gzip compression level (default `2`)
 * `RU_SCHEDULE_RAND`: Rand for schedulers start, +0..X seconds (default `10`)
-* `RU_LOG_FILE`: ruTorrent log file path for errors messages (default `/data/rutorrent/rutorrent.log`)
+* `RU_LOG_FILE`: ruTorrent log file path for errors messages (default `/config/rutorrent/rutorrent.log`)
 * `RU_DO_DIAGNOSTIC`: ruTorrent diagnostics like permission checking (default `true`)
 * `RU_CACHED_PLUGIN_LOADING`: Set to `true` to enable rapid cached loading of ruTorrent plugins (default `false`)
 * `RU_PLUGIN_MINIFICATION`: Set to `false` to disable plugins minification (default `true`)
-* `RU_SAVE_UPLOADED_TORRENTS`: Save torrents files added wia ruTorrent in `/data/rutorrent/share/torrents` (default `true`)
+* `RU_SAVE_UPLOADED_TORRENTS`: Save torrents files added wia ruTorrent in `/config/rutorrent/share/torrents` (default `true`)
 * `RU_OVERWRITE_UPLOADED_TORRENTS`: Existing .torrent files will be overwritten (default `false`)
 * `RU_FORBID_USER_SETTINGS`: If true, allows for single user style configuration, even with webauth (default `false`)
 * `RU_LOCALE`: Set default locale for ruTorrent (default `UTF8`)
@@ -279,13 +279,13 @@ properties of this file:
 
 * `system.daemon.set = true`: Launcher rTorrent as a daemon
 * A config layout for the rTorrent's instance you can use in your `.rtorrent.rc`:
-  * `cfg.basedir`: Home directory of rtorrent (`/data/rtorrent/`)
+  * `cfg.basedir`: Home directory of rtorrent (`/config/rtorrent/`)
   * `cfg.download`: Download directory (`/downloads/`)
   * `cfg.download_complete`: Completed downloads (`/downloads/`)
   * `cfg.download_temp`:  Downloads in progress (`/downloads/`)
-  * `cfg.logs`: Logs directory (`/data/rtorrent/log/`)
-  * `cfg.session`: Session directory (`/data/rtorrent/.session/`)
-  * `cfg.watch`: Watch directory for torrents (`/data/rtorrent/watch/`)
+  * `cfg.logs`: Logs directory (`/config/rtorrent/log/`)
+  * `cfg.session`: Session directory (`/config/rtorrent/.session/`)
+  * `cfg.watch`: Watch directory for torrents (`/config/rtorrent/watch/`)
   * `cfg.rundir`: Runtime data of rtorrent (`/var/run/rtorrent/`)
 * `d.data_path`: Config var to get the full path of data of a torrent (workaround for the possibly empty `d.base_path` attribute)
 * `directory.default.set`: Default directory to save the downloaded torrents (`cfg.download_temp`)
@@ -294,7 +294,7 @@ properties of this file:
 * `network.scgi.open_local`: SCGI local socket and make it group-writable and secure
 * `network.listen.port.range.set`: Listening port for incoming peer traffic (`50000-50000`)
 * `dht.override_port.set`: UDP port to use for DHT (`6881`)
-* `log.open_file`: Default logging to `/data/rtorrent/log/rtorrent.log`
+* `log.open_file`: Default logging to `/config/rtorrent/log/rtorrent.log`
   * Log level can be modified with the environment variable `RT_LOG_LEVEL`
   * `rpc_events` are logged be default
   * To log executed commands, add the environment variable `RT_LOG_EXECUTE`
@@ -302,9 +302,9 @@ properties of this file:
 
 ### Override or add a ruTorrent plugin/theme
 
-You can add a plugin for ruTorrent in `/data/rutorrent/plugins/`. If you add a
+You can add a plugin for ruTorrent in `/config/rutorrent/plugins/`. If you add a
 plugin that already exists in ruTorrent, it will be removed from ruTorrent core
-plugins and yours will be used. And you can also add a theme in `/data/rutorrent/themes/`.
+plugins and yours will be used. And you can also add a theme in `/config/rutorrent/themes/`.
 The same principle as for plugins will be used if you want to override one.
 
  [!WARNING]
@@ -315,9 +315,9 @@ The same principle as for plugins will be used if you want to override one.
 As you probably know, plugin configuration is not outsourced in ruTorrent.
 Loading the configuration of a plugin is done via a `conf.php` file placed at
 the root of the plugin folder. To solve this issue with Docker, a special folder
-has been created in `/data/rutorrent/plugins-conf` to allow you to configure
+has been created in `/config/rutorrent/plugins-conf` to allow you to configure
 plugins. For example to configure the `diskspace` plugin, you will need to create
-the `/data/rutorrent/plugins-conf/diskspace.php` file with your configuration:
+the `/config/rutorrent/plugins-conf/diskspace.php` file with your configuration:
 
 ```php
 <?php

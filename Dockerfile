@@ -170,6 +170,7 @@ ENV APP_DIR="/app" \
 
 ENV PYTHONPATH="/var/www/rutorrent" \
   S6_BEHAVIOUR_IF_STAGE2_FAILS="2" \
+  S6_STAGE2_HOOK="/etc/s6-overlay/scripts/runtime-bundles" \
   S6_KILL_GRACETIME="10000" \
   S6_CMD_WAIT_FOR_SERVICES_MAXTIME="0" \
   XDG_CONFIG_HOME="${CONFIG_DIR}/.config" \

@@ -37,7 +37,7 @@ services:
   geoip-updater:
     image: crazymax/geoip-updater:latest
     volumes:
-      - "./data/geoip:/data"
+      - "./config/geoip:/data"
     env_file:
       - "./geoip-updater.env"
     restart: always
@@ -93,5 +93,5 @@ services:
     depends_on:
       - rtorrent-rutorrent
     volumes:
-      - "./data/rtorrent/log:/log"
+      - "./config/rtorrent/log:/log"
     restart: always
