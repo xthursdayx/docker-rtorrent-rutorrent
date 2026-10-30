@@ -1,42 +1,6 @@
 name: rtorrent-rutorrent
 
 services:
-  traefik:
-    image: traefik:2.5
-    container_name: traefik
-    command:
-      - "--global.checknewversion=false"
-      - "--global.sendanonymoususage=false"
-      - "--log=true"
-      - "--log.level=INFO"
-      - "--entrypoints.http=true"
-      - "--entrypoints.http.address=:80"
-      - "--entrypoints.http.http.redirections.entrypoint.to=https"
-      - "--entrypoints.http.http.redirections.entrypoint.scheme=https"
-      - "--entrypoints.https=true"
-      - "--entrypoints.https.address=:443"
-      - "--certificatesresolvers.letsencrypt"
-      - "--certificatesresolvers.letsencrypt.acme.storage=acme.json"
-      - "--certificatesresolvers.letsencrypt.acme.email=webmaster@example.com"
-      - "--certificatesresolvers.letsencrypt.acme.httpchallenge"
-      - "--certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=http"
-      - "--providers.docker"
-      - "--providers.docker.watch=true"
-      - "--providers.docker.exposedbydefault=false"
-    networks:
-      - rtorrent-rutorrent
-    ports:
-      - target: 80
-        published: 80
-        protocol: tcp
-      - target: 443
-        published: 443
-        protocol: tcp
-    volumes:
-      - "./acme.json:/acme.json"
-      - "/var/run/docker.sock:/var/run/docker.sock"
-    restart: always
-
   geoip-updater:
     image: crazymax/geoip-updater:latest
     container_name: geoip-updater
@@ -49,7 +13,7 @@ services:
     restart: always
 
   rtorrent-rutorrent:
-    image: crazymax/rtorrent-rutorrent:latest
+    image: xthursdayx/rtorrent-rutorrent:latest
     container_name: rtorrent-rutorrent
     networks:
       - rtorrent-rutorrent
@@ -63,6 +27,12 @@ services:
       - target: ${RT_DHT_PORT}
         published: ${RT_DHT_PORT}
         protocol: udp
+      - target: ${RUTORRENT_PORT}
+        published: ${RUTORRENT_PORT}
+        protocol: tcp
+      - target: ${WEBDAV_PORT}
+        published: ${WEBDAV_PORT}
+        protocol: tcp
       - target: ${RT_INC_PORT}
         published: ${RT_INC_PORT}
         protocol: tcp
@@ -70,25 +40,9 @@ services:
       - "rtorrent-rutorrent.env"
       - ".env"
     volumes:
-      - "./data:/data"
+      - "./config:/config"
       - "./downloads:/downloads"
       - "./passwd:/passwd"
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.rutorrent.entrypoints=https"
-      - "traefik.http.routers.rutorrent.rule=Host(`rutorrent.example.com`)"
-      - "traefik.http.routers.rutorrent.tls=true"
-      - "traefik.http.routers.rutorrent.tls.certresolver=letsencrypt"
-      - "traefik.http.routers.rutorrent.tls.domains[0].main=rutorrent.example.com"
-      - "traefik.http.routers.rutorrent.service=rutorrent"
-      - "traefik.http.services.rutorrent.loadbalancer.server.port=${RUTORRENT_PORT}"
-      - "traefik.http.routers.webdav.entrypoints=https"
-      - "traefik.http.routers.webdav.rule=Host(`webdav.example.com`)"
-      - "traefik.http.routers.webdav.tls=true"
-      - "traefik.http.routers.webdav.tls.certresolver=letsencrypt"
-      - "traefik.http.routers.webdav.tls.domains[0].main=webdav.example.com"
-      - "traefik.http.routers.webdav.service=webdav"
-      - "traefik.http.services.webdav.loadbalancer.server.port=${WEBDAV_PORT}"
     ulimits:
       nproc: 65535
       nofile:

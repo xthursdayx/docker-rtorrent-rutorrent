@@ -2,7 +2,7 @@ name: rtorrent-rutorrent
 
 services:
   rtorrent-rutorrent:
-    image: ${RTORRENT_RUTORRENT_IMAGE:-crazymax/rtorrent-rutorrent}
+    image: ${RTORRENT_RUTORRENT_IMAGE:-xthursdayx/rtorrent-rutorrent}
     container_name: ${RTORRENT_RUTORRENT_CONTAINER:-rtorrent-rutorrent}
     networks:
       - rtorrent-rutorrent
@@ -29,7 +29,7 @@ services:
       - "rtorrent-rutorrent.env"
       - ".env"
     volumes:
-      - "rtorrent-rutorrent-data:/data"
+      - "rtorrent-rutorrent-config:/config"
       - "rtorrent-rutorrent-downloads:/downloads"
       - "rtorrent-rutorrent-passwd:/passwd"
     ulimits:
@@ -40,7 +40,7 @@ services:
     restart: always
 
 volumes:
-  rtorrent-rutorrent-data:
+  rtorrent-rutorrent-config:
   rtorrent-rutorrent-downloads:
   rtorrent-rutorrent-passwd:
 

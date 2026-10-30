@@ -14,10 +14,33 @@
 [rTorrent](https://github.com/rakshasa/rtorrent) with [ruTorrent](https://github.com/Novik/ruTorrent)
 Docker image.
 
-> [!TIP] 
-> 
+> [!TIP]
 > Want to be notified of new releases? Check out 🔔 [Diun (Docker Image Update Notifier)](https://github.com/crazy-max/diun)
 > project!
+
+### Differences from upstream
+
+This is a fork of [crazy-max/docker-rtorrent-rutorrent](https://github.com/crazy-max/docker-rtorrent-rutorrent)
+with the following changes:
+
+* All application state lives in `/config` (`CONFIG_DIR`) instead of `/data`
+  (`/config/rtorrent`, `/config/rutorrent`, `/config/geoip`)
+* Downloads go straight to `/downloads` (no `complete/` and `temp/` subfolders);
+  WebDAV serves `/downloads`
+* Watch folders `watch/load` (add) and `watch/start` (add and start), polled
+  instead of using inotify
+* Tuned defaults: `RT_INC_PORT=51413`, `XMLRPC_SIZE_LIMIT=6M`,
+  `RT_SEND_BUFFER_SIZE`/`RT_RECEIVE_BUFFER_SIZE=128M`, `RT_PREALLOCATE_TYPE=1`
+* Tuned `.rtorrent.rc` template (peer/upload limits, file handles, DHT disabled,
+  piece preloading, memory)
+* Larger nginx client body and FastCGI buffers for ruTorrent
+* Extra environment: `LANG`/`LC_ALL=C.UTF-8`, `XDG_*` under `/config`,
+  `S6_KILL_GRACETIME=10000`
+
+> [!NOTE]
+> Coming from the upstream image? Move `data/rtorrent`, `data/rutorrent` and
+> `data/geoip` into your `config` folder before the first start. The container
+> logs a warning if it finds an upstream layout in `/data` and nothing in `/config`.
 
 ___
 
@@ -74,7 +97,7 @@ ___
 ## Build locally
 
 ```shell
-git clone https://github.com/crazy-max/docker-rtorrent-rutorrent.git
+git clone https://github.com/xthursdayx/docker-rtorrent-rutorrent.git
 cd docker-rtorrent-rutorrent
 
 # Build image and output to docker (default)
@@ -91,13 +114,13 @@ docker buildx bake image-all
 
 | Registry                                                                                                      | Image                                   |
 |---------------------------------------------------------------------------------------------------------------|-----------------------------------------|
-| [Docker Hub](https://hub.docker.com/r/crazymax/rtorrent-rutorrent/)                                           | `crazymax/rtorrent-rutorrent`           |
-| [GitHub Container Registry](https://github.com/users/crazy-max/packages/container/package/rtorrent-rutorrent) | `ghcr.io/crazy-max/rtorrent-rutorrent`  |
+| [Docker Hub](https://hub.docker.com/r/xthursdayx/rtorrent-rutorrent/)                                          | `xthursdayx/rtorrent-rutorrent`          |
+| [GitHub Container Registry](https://github.com/users/xthursdayx/packages/container/package/rtorrent-rutorrent) | `ghcr.io/xthursdayx/rtorrent-rutorrent`  |
 
 Following platforms for this image are available:
 
 ```
-$ docker buildx imagetools inspect crazymax/rtorrent-rutorrent --format "{{json .Manifest}}" | \
+$ docker buildx imagetools inspect xthursdayx/rtorrent-rutorrent --format "{{json .Manifest}}" | \
   jq -r '.manifests[] | select(.platform.os != null and .platform.os != "unknown") | .platform | "\(.os)/\(.architecture)\(if .variant then "/" + .variant else "" end)"'
 linux/amd64
 linux/arm/v6
@@ -127,7 +150,7 @@ linux/arm64
 * `LOG_ACCESS`: Output access log (default `true`)
 * `XMLRPC_AUTHBASIC_STRING`: Message displayed during validation of XMLRPC Basic Auth (default `rTorrent XMLRPC restricted access`)
 * `XMLRPC_PORT`: XMLRPC port through nginx over SCGI socket (default `8000`)
-* `XMLRPC_SIZE_LIMIT`: Maximum body size of XMLRPC calls (default `1M`)
+* `XMLRPC_SIZE_LIMIT`: Maximum body size of XMLRPC calls (default `6M`)
 * `RUTORRENT_AUTHBASIC_STRING`: Message displayed during validation of ruTorrent Basic Auth (default `ruTorrent restricted access`)
 * `RUTORRENT_PORT`: ruTorrent HTTP port (default `8080`)
 * `WEBDAV_AUTHBASIC_STRING`: Message displayed during validation of WebDAV Basic Auth (default `WebDAV restricted access`)
@@ -142,7 +165,7 @@ linux/arm64
 * `RT_SESSION_FDATASYNC`: Force fdatasync when saving sessions (`system.files.session.fdatasync.set`, default `false`)
 * `RT_TRACKER_DELAY_SCRAPE`: Delay tracker announces at startup (default `true`)
 * `RT_DHT_PORT`: DHT UDP port (`dht.override_port.set`, default `6881`)
-* `RT_INC_PORT`: Incoming connections (`network.listen.port.range.set`, default `50000`)
+* `RT_INC_PORT`: Incoming connections (`network.listen.port.range.set`, default `51413`)
 * `RT_SEND_BUFFER_SIZE`: Sets default tcp wmem value (`network.send_buffer.size.set`, default `128M`)
 * `RT_RECEIVE_BUFFER_SIZE`: Sets default tcp rmem value (`network.receive_buffer.size.set`, default `128M`)
 * `RT_PREALLOCATE_TYPE`: Sets the type of [disk space preallocation](#rtorrent-disk-space-preallocation) (default `1`)
@@ -172,7 +195,7 @@ linux/arm64
 
 ## Volumes
 
-* `/data`: rTorrent / ruTorrent config, session files, log, ...
+* `/config`: rTorrent / ruTorrent config, session files, log, GeoIP databases, ...
 * `/downloads`: Downloaded files
 * `/passwd`: Contains htpasswd files for basic auth
 
@@ -187,7 +210,7 @@ linux/arm64
 * `8000` (or `XMLRPC_PORT`): XMLRPC port through nginx over SCGI socket
 * `8080` (or `RUTORRENT_PORT`): ruTorrent HTTP port
 * `9000` (or `WEBDAV_PORT`): WebDAV port on completed downloads
-* `50000` (or `RT_INC_PORT`): Incoming connections (`network.listen.port.range.set`)
+* `51413` (or `RT_INC_PORT`): Incoming connections (`network.listen.port.range.set`)
 
 > [!WARNING]
 > Port p+1 defined for `XMLRPC_PORT`, `RUTORRENT_PORT` and `WEBDAV_PORT` will
@@ -204,10 +227,10 @@ your host for example. Edit the compose file with your preferences and run the
 following command:
 
 ```shell
-mkdir data downloads passwd
-chown ${PUID}:${PGID} data downloads passwd
-docker-compose up -d
-docker-compose logs -f
+mkdir config downloads passwd
+chown ${PUID}:${PGID} config downloads passwd
+docker compose up -d
+docker compose logs -f
 ```
 
 ### Command line
@@ -215,21 +238,25 @@ docker-compose logs -f
 You can also use the following minimal command:
 
 ```shell
-mkdir data downloads passwd
-chown ${PUID}:${PGID} data downloads passwd
+mkdir config downloads passwd
+chown ${PUID}:${PGID} config downloads passwd
 docker run -d --name rtorrent_rutorrent \
   --ulimit nproc=65535 \
   --ulimit nofile=32000:40000 \
   -p 6881:6881/udp \
-  -p 8000:8000 \
   -p 8080:8080 \
   -p 9000:9000 \
-  -p 50000:50000 \
-  -v $(pwd)/data:/data \
+  -p 51413:51413 \
+  -v $(pwd)/config:/config \
   -v $(pwd)/downloads:/downloads \
   -v $(pwd)/passwd:/passwd \
-  crazymax/rtorrent-rutorrent:latest
+  xthursdayx/rtorrent-rutorrent:latest
 ```
+
+> [!WARNING]
+> Only publish the XMLRPC port (`8000`) if you need remote RPC access, and only
+> after populating `/passwd/rpc.htpasswd`. Without it, XMLRPC is unauthenticated
+> and rTorrent's `execute.*` commands make that equivalent to shell access.
 
 ## Notes
 
@@ -243,7 +270,7 @@ with his password. See below to populate this file with a user / password.
 
 ### WebDAV
 
-WebDAV allows you to retrieve your completed torrent files in `/downloads/complete`
+WebDAV allows you to retrieve your downloaded files in `/downloads`
 on port `9000`. Like XMLRPC, these requests can be secured with basic authentication
 through the `/passwd/webdav.htpasswd` file in which you will need to add a
 username with his password. See below to populate this file with a user / password.
@@ -282,18 +309,16 @@ properties of this file:
 * A config layout for the rTorrent's instance you can use in your `.rtorrent.rc`:
   * `cfg.basedir`: Home directory of rtorrent (`/config/rtorrent/`)
   * `cfg.download`: Download directory (`/downloads/`)
-  * `cfg.download_complete`: Completed downloads (`/downloads/`)
-  * `cfg.download_temp`:  Downloads in progress (`/downloads/`)
   * `cfg.logs`: Logs directory (`/config/rtorrent/log/`)
   * `cfg.session`: Session directory (`/config/rtorrent/.session/`)
   * `cfg.watch`: Watch directory for torrents (`/config/rtorrent/watch/`)
   * `cfg.rundir`: Runtime data of rtorrent (`/var/run/rtorrent/`)
 * `d.data_path`: Config var to get the full path of data of a torrent (workaround for the possibly empty `d.base_path` attribute)
-* `directory.default.set`: Default directory to save the downloaded torrents (`cfg.download_temp`)
+* `directory.default.set`: Default directory to save the downloaded torrents (`cfg.download`)
 * `session.path.set`: Default session directory (`cfg.session`)
 * PID file to `/var/run/rtorrent/rtorrent.pid`
 * `network.scgi.open_local`: SCGI local socket and make it group-writable and secure
-* `network.listen.port.range.set`: Listening port for incoming peer traffic (`50000-50000`)
+* `network.listen.port.range.set`: Listening port for incoming peer traffic (`51413-51413`)
 * `dht.override_port.set`: UDP port to use for DHT (`6881`)
 * `log.open_file`: Default logging to `/config/rtorrent/log/rtorrent.log`
   * Log level can be modified with the environment variable `RT_LOG_LEVEL`
@@ -308,7 +333,7 @@ plugin that already exists in ruTorrent, it will be removed from ruTorrent core
 plugins and yours will be used. And you can also add a theme in `/config/rutorrent/themes/`.
 The same principle as for plugins will be used if you want to override one.
 
- [!WARNING]
+> [!WARNING]
 > Container has to be restarted to propagate changes
 
 ### Edit a ruTorrent plugin configuration
@@ -345,7 +370,7 @@ closed forcefully and the lockfile isn't removed. This stale lockfile will
 prevent rTorrent from restarting until the lockfile is removed manually.
 
 The timeout period can be extended by either adding the parameter `-t XX` to
-the docker command or `stop_grace_period: XXs` in docker-compose.yml, where
+the docker command or `stop_grace_period: XXs` in `compose.yml`, where
 `XX` is the number of seconds to wait for a graceful shutdown.
 
 ### WAN IP address
@@ -402,7 +427,7 @@ throughput.
 
 Recommended values:
 * `2GB of less system memory`: Reduce to 1M send and 1M receive regardless of speed.
-* `4GB to 16GB of system memory`: Keep at default values of 4M send and 4M receive.
+* `4GB to 16GB of system memory`: 4M send and 4M receive (upstream default).
 * `16GB to 32GB of system memory`: Increase to 8M send for 500Mbps speeds.
 * `32GB to 64GB of system memory`: Increase to 16M send for 1G speeds.
 * `64GB to 128GB of system memory`: Increase to 32M send for 2.5G speeds.
@@ -413,19 +438,31 @@ memory and speed conditions. The default values should not be increased, unless
 both the memory and speed requirements are met. These values of system memory
 are also recommended based on the port speed for rTorrent to reduce disk usage.
 
+> [!NOTE]
+> This fork defaults both to `128M`. The kernel caps what rTorrent can request at
+> the host's `net.core.rmem_max` / `net.core.wmem_max`, which cannot be raised from
+> inside the container, so set those on the Docker host for larger buffers to apply.
+
 ### rTorrent disk space preallocation
+
 Preallocate disk space for contents of a torrent
+
 * `RT_PREALLOCATE_TYPE`: Sets the type of disk space preallocation to use.
+
 Acceptable values:
-* `0 = disabled (default value)`
-* `1 = enabled, allocate when a file is opened for write`
+
+* `0 = disabled (upstream default)`
+* `1 = enabled, allocate when a file is opened for write (this fork's default)`
 * `2 = enabled, allocate space for the whole torrent at once`
-This feature is disabled by default becuase it only benefits HDDs.
-By allocating files in sequence we can increase the read speed for seeding.
+
+Preallocation mainly benefits HDDs: by allocating files in sequence we can
+increase the read speed for seeding.
+
 The first type "1" only allocates disk space for files which start downloading.
 Use where disk space is more important than speed. Or you intend to download selective torrent files.
+
 The second type "2" allocates disk space for the entire torrent, whether it's downloaded or not.
-This method is faster than "1" becuase it reduces random reads for the entire torrent.
+This method is faster than "1" because it reduces random reads for the entire torrent.
 Use where speed is more important than disk space. Or you intend to download 100% of every torrent.
 
 ## Upgrade
@@ -433,8 +470,8 @@ Use where speed is more important than disk space. Or you intend to download 100
 To upgrade, pull the newer image and launch the container:
 
 ```shell
-docker-compose pull
-docker-compose up -d
+docker compose pull
+docker compose up -d
 ```
 
 ## Contributing

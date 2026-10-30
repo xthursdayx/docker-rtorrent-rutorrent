@@ -180,7 +180,7 @@ ENV PYTHONPATH="/var/www/rutorrent" \
   LC_ALL="C.UTF-8" \
   TZ="UTC" \
   PUID="1000" \
-  PGID="1000" 
+  PGID="1000"
 
 # increase rmem_max and wmem_max for rTorrent configuration
 RUN echo "net.core.rmem_max = 67108864" >> /etc/sysctl.conf \
@@ -246,7 +246,7 @@ RUN apk --update --no-cache add \
 
 COPY rootfs /
 
-VOLUME [ "/data", "/downloads", "/passwd", "/config" ]
+VOLUME [ "/config", "/downloads", "/passwd" ]
 ENTRYPOINT [ "/init" ]
 
 HEALTHCHECK --interval=30s --timeout=20s --start-period=10s \

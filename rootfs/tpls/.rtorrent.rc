@@ -86,5 +86,7 @@ system.file.allocate.set = 1
 # Other operational settings
 system.cwd.set = (directory.default)
 network.http.dns_cache_timeout.set = 25
-network.http.ssl_verify_peer.set = 0
-network.http.ssl_verify_host.set = 0
+# TLS certificate checks for HTTPS trackers stay on by default. Uncomment only
+# if a specific tracker has a broken certificate (passkeys travel over this).
+#network.http.ssl_verify_peer.set = 0
+#network.http.ssl_verify_host.set = 0

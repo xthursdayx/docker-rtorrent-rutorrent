@@ -4,7 +4,6 @@
 echo "Fixing perms..."
 mkdir -p /config/rtorrent \
   /config/rutorrent \
-  /data \
   /downloads \
   /passwd \
   /etc/nginx/conf.d \
@@ -19,7 +18,6 @@ chown rtorrent:rtorrent \
   /config \
   /config/rtorrent \
   /config/rutorrent \
-  /data \
   /downloads
 chown -R rtorrent:rtorrent \
   /etc/rtorrent \
@@ -34,4 +32,4 @@ chown -R rtorrent:rtorrent \
   /var/run/rtorrent
 
 echo "Applying permissions to ${CONFIG_DIR}"
-chmod "=rwx" "${CONFIG_DIR}"
+chmod u+rwx "${CONFIG_DIR}"
